@@ -102,11 +102,10 @@ public class EntityExtender<T>
                     {{
                         foreach(var subitem in item.{propertyName})
                         {{
-                            if (subitem.Id < 1)
-                            {{
+                            if (subitem.{foreignKeyName} != item.Id)
                                 subitem.{foreignKeyName} = item.Id;
+                            if (subitem.Id < 1)
                                 db.{foreignPropertyOnApplicationDbContextName}.Add(subitem);
-                            }}
                         }}
                     }}
 
@@ -137,8 +136,12 @@ public class EntityExtender<T>
                 var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name; 
 
                 lazyCode += @$"
-                    item.{propertyName} = new Lazy<{foreignType.FullName}?>(
-                        () => db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
+                    item.{propertyName} = new Lazy<{foreignType.FullName}?>(() => 
+                        {{
+                            var subitem = db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName});
+                            if (subitem == null) return null;
+                            return subitem;
+                        }});";
             }
         }
 

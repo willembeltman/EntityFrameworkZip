@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using EntityFrameworkZip.Interfaces;
 
@@ -11,18 +10,23 @@ namespace EntityFrameworkZip.Helpers
         // Controleert of de eigenschap een foreign key attribuut heeft
         public static bool HasForeignKeyAttribute(PropertyInfo prop)
         {
-            return prop.GetCustomAttribute<ForeignKeyAttribute>() != null;
+            return 
+                prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute>() != null ||
+                prop.GetCustomAttribute<Attributes.ForeignKeyAttribute>() != null;
         }
         public static bool HasNotMappedAttribute(PropertyInfo prop)
         {
-            return prop.GetCustomAttribute<NotMappedAttribute>() != null;
+            return 
+                prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute>() != null ||
+                prop.GetCustomAttribute<Attributes.NotMappedAttribute>() != null;
         }
 
         // Haalt de naam op van de foreign key zoals aangegeven in het [ForeignKey("...")] attribuut
         public static string? GetForeignKeyAttributeName(PropertyInfo prop)
         {
-            var attr = prop.GetCustomAttribute<ForeignKeyAttribute>();
-            return attr?.Name;
+            var attr1 = prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute>();
+            var attr2 = prop.GetCustomAttribute<Attributes.ForeignKeyAttribute>();
+            return attr1?.Name ?? attr2?.Name;
         }
 
         // Controleert of de eigenschap een ICollection<T> is (gebruikelijk voor navigatiecollecties)

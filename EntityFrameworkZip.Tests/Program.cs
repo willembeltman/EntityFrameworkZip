@@ -1,52 +1,67 @@
-﻿using EntityFrameworkZip;
-using EntityFrameworkZip.Interfaces;
+﻿// Example test application demonstrating usage of the EntityFrameworkZip in-memory database.
 using EntityFrameworkZip.Tests;
-using EntityFrameworkZip.Tests.Entities;
 
-//ApplicationDbContext db = new ApplicationDbContext("TestDatabase");
+// Create or load the database from a .zip file.
+// All operations are performed in-memory; the zip file is only used when SaveChanges() is called.
+var db = new MyDbContext("test.zip");
 
-//var company = new Company() { Name = "Test Company" };
-//company.Employees.Add(new Person() { Name = "John Doe", Age = 30 });
-//company.Employees.Add(new Person() { Name = "Jane Doe", Age = 25 });
-//db.Companies.Add(company);
-//if (db.People.Count < 2)
-//    throw new Exception("Test failed: Company count is less than 2.");
-//if (!company.Employees2.Any())
-//    throw new Exception("Test failed: Company count is less than 2.");
-//db.SaveChanges();
-
-
-#nullable disable
-
-// Create or load a database from a zip file.
-var db = new ApplicationDbContext("test.zip");
-
-// Create and add Person entities.
+// Create Person entities.
 var alice = new Person { Name = "Alice" };
-db.People.Add(alice);
-
 var bob = new Person { Name = "Bob" };
+
+// Add persons to the context.
+db.People.Add(alice);
 db.People.Add(bob);
 
-// Create a Company and assign employees *before* adding to the context.
+// Create a Company and assign employees *before* adding the company to the context.
+// Because the Employees list is initialized in the Company class, we can safely add employees here.
 var testCompany = new Company { Name = "Test Company" };
 testCompany.Employees.Add(alice);
 testCompany.Employees.Add(bob);
 
-// Adding the Company will automatically associate employees via navigation properties.
+// Add the company to the context.
+// This will automatically link the previously added Person entities via the navigation property.
 db.Companies.Add(testCompany);
 
-// Set additional relationship (OwnerId must be explicitly set).
+// Set the owner relationship explicitly.
+// Note: OwnerId must be set manually; the OwnerPerson lazy reference will resolve after adding to the context.
 testCompany.OwnerId = alice.Id;
 
-// After being added to the context, lazy loading will resolve relationships.
-if (testCompany.Owner.Value.Name != "Alice")
+// Verify that lazy loading of the OwnerPerson property works correctly.
+if (testCompany.OwnerPerson.Value.Name != "Alice")
 {
     throw new Exception("Test failed: Owner is not Alice.");
 }
 
-// Example query: get all people whose name starts with "A".
+// Query example: select all people whose name starts with "A".
 var all = db.People.Where(p => p.Name.StartsWith("A")).ToList();
+if (all.Count != 1)
+{
+    throw new Exception("Test failed: Expected 1 person, got " + all.Count);
+}
 
-// Persist changes to disk (in this case, the zip file).
+// Work with the extended CompanyFinance object.
+testCompany.Finance.Revenue = 1000;
+testCompany.Finance.Expenses = 500;
+testCompany.Finance.HeadOfFinancePersonId = bob.Id;
+
+// Verify calculated property.
+if (testCompany.Finance.Profit != 500)
+{
+    throw new Exception("Test failed: Profit is not 500.");
+}
+
+// Verify that lazy loading works inside nested objects.
+if (testCompany.Finance.HeadOfFinancePerson.Value.Name != "Bob")
+{
+    throw new Exception("Test failed: Head of Finance is not Bob.");
+}
+
+// Verify recursive object resolution via lazy navigation properties.
+if (testCompany.Finance.HeadOfFinancePerson.Value.Company.Value.Employees.Count != 2)
+{
+    throw new Exception("Test failed: Recursive navigation failed.");
+}
+
+// Persist all changes to disk by saving the entire database to a .zip file.
 db.SaveChanges();

@@ -61,8 +61,6 @@ public class EntitySerializer<T>
             if (ReflectionHelper.IsExtendedProperty(prop)) continue;
             if (ReflectionHelper.IsExtendedList(prop)) continue;
 
-
-
             // Wat kan er allemaal?
             //
             // Primitive types
