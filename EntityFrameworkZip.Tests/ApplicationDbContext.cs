@@ -1,8 +1,8 @@
 ﻿using EntityFrameworkZip.Tests.Entities;
-using EntityFrameworkZip;
 
 namespace EntityFrameworkZip.Tests;
 
+#nullable disable
 public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(string fullName) : base(fullName) { }

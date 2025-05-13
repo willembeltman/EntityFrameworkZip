@@ -2,14 +2,12 @@
 
 namespace EntityFrameworkZip.Tests.Entities;
 
+#nullable disable
 public class Company : IEntity
 {
     public long Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Address { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
+    public long OwnerId { get; set; }
+    public string Name { get; set; }
     public virtual ICollection<Person> Employees { get; set; } = new List<Person>();
-    public virtual IEnumerable<Person> Employees2 { get; set; } = new List<Person>();
+    public virtual Lazy<Person> Owner { get; set; } = new Lazy<Person>(() => null);
 }

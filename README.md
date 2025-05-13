@@ -36,30 +36,81 @@ dotnet add package EntityFrameworkZip
 
 ```csharp
 
+#nullable disable
+
+// A simple Person entity implementing IEntity.
+// Includes a reference to a Company via a Lazy<Company> property.
 public class Person : IEntity
 {
     public long Id { get; set; }
+    public long CompanyId { get; set; }
     public string Name { get; set; }
+
+    // Lazily loaded reference to the related Company.
+    public virtual Lazy<Company> Company { get; set; } = new Lazy<Company>(() => null);
 }
 
-public class MyDbContext : ZipDbContext
+#nullable disable
+
+// A simple Company entity implementing IEntity.
+// Includes a collection of Employees and a Lazy-loaded Owner reference.
+public class Company : IEntity
 {
-    public MyDbContext() : base("mydata.zip") { }
+    public long Id { get; set; }
+    public long OwnerId { get; set; }
+    public string Name { get; set; }
+
+    // Employees in this company.
+    public virtual ICollection<Person> Employees { get; set; } = new List<Person>();
+
+    // Lazily loaded reference to the Owner (a Person).
+    public virtual Lazy<Person> Owner { get; set; } = new Lazy<Person>(() => null);
+}
+
+#nullable disable
+
+// The database context. Inherits from the Zip-based EF-like memory database.
+public class MyDbContext : DbContext
+{
+    public MyDbContext(string fullName) : base(fullName) { }
+
+    public virtual DbSet<Company> Companies { get; set; }
     public virtual DbSet<Person> People { get; set; }
 }
 
-var db = new MyDbContext();
+// Create or load a database from a zip file.
+var db = new MyDbContext("test.zip");
 
-// Add entities
-db.People.Add(new Person { Name = "Alice" });
-db.People.Add(new Person { Name = "Bob" });
+// Create and add Person entities.
+var alice = new Person { Name = "Alice" };
+db.People.Add(alice);
 
+var bob = new Person { Name = "Bob" };
+db.People.Add(bob);
 
-// Query
+// Create a Company and assign employees *before* adding to the context.
+var testCompany = new Company { Name = "Test Company" };
+testCompany.Employees.Add(alice);
+testCompany.Employees.Add(bob);
+
+// Adding the Company will automatically associate employees via navigation properties.
+db.Companies.Add(testCompany);
+
+// Set additional relationship (OwnerId must be explicitly set).
+testCompany.OwnerId = alice.Id;
+
+// After being added to the context, lazy loading will resolve relationships.
+if (testCompany.Owner.Value.Name != "Alice")
+{
+    throw new Exception("Test failed: Owner is not Alice.");
+}
+
+// Example query: get all people whose name starts with "A".
 var all = db.People.Where(p => p.Name.StartsWith("A")).ToList();
 
-// Save to zip
+// Persist changes to disk (in this case, the zip file).
 db.SaveChanges();
+
 
 ```
 
@@ -85,7 +136,7 @@ This is an in-memory database — data is only saved if you explicitly call Save
 
 All entities must implement the IEntity interface (with at least an Id property)
 
-Foreign key relationships can be automatically managed 
+Foreign key relationships are automatically managed 
 
 ---
 
