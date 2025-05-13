@@ -24,16 +24,17 @@ config snapshots.
 
 Install via NuGet:
 
+```bash
+
 dotnet add package EntityFrameworkZip
 
-Or in your `.csproj`:
-
-<PackageReference Include="EntityFrameworkZip" Version="x.y.z" />
-
+```
 
 ---
 
 ## 🚀 Getting Started
+
+```csharp
 
 public class Person : IEntity
 {
@@ -53,11 +54,14 @@ var db = new MyDbContext();
 db.People.Add(new Person { Name = "Alice" });
 db.People.Add(new Person { Name = "Bob" });
 
+
 // Query
 var all = db.People.Where(p => p.Name.StartsWith("A")).ToList();
 
 // Save to zip
 db.SaveChanges();
+
+```
 
 ---
 
@@ -77,11 +81,11 @@ db.SaveChanges();
 
 ## ❗ Notes
 
-This is an in-memory database — data is only saved if you explicitly call SaveTo(...)
+This is an in-memory database — data is only saved if you explicitly call SaveChanges()
 
 All entities must implement the IEntity interface (with at least an Id property)
 
-Foreign key relationships can be manually managed or via helper types like LazyForeignEntityCollection
+Foreign key relationships can be automatically managed 
 
 ---
 
