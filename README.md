@@ -47,7 +47,7 @@ public class Person : IEntity
     public string Name { get; set; }
 
     // Lazily loaded reference to the related Company.
-    public virtual Lazy<Company> Company { get; set; } = new Lazy<Company>(() => null);
+    public virtual Lazy<Company> Company { get; set; }
 }
 
 #nullable disable
@@ -64,7 +64,7 @@ public class Company : IEntity
     public virtual ICollection<Person> Employees { get; set; } = new List<Person>();
 
     // Lazily loaded reference to the Owner (a Person).
-    public virtual Lazy<Person> Owner { get; set; } = new Lazy<Person>(() => null);
+    public virtual Lazy<Person> Owner { get; set; }
 }
 
 #nullable disable
