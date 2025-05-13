@@ -1,6 +1,6 @@
 ﻿# EntityFrameworkZip
 
-A lightweight, in-memory, EF-style database that can be saved to and loaded from a `.zip` file.
+A lightweight, in-memory Entity Framework-style database that saves and loads from a single `.zip` file.
 
 EntityFrameworkZip is designed for scenarios where you want the feel of Entity Framework but without needing a 
 real database. It runs entirely in memory and lets you persist your data by zipping everything into a single file. 
@@ -32,9 +32,7 @@ dotnet add package EntityFrameworkZip
 
 ---
 
-## 🚀 Getting Started
-
-Simple example of how to use EntityFrameworkZip:
+## 🚀 Quick Start (with EF-style syntax)
 
 ```csharp
 
@@ -116,7 +114,10 @@ db.SaveChanges();
 
 ```
 
-Advanced example with lazy loading and foreign key relationships:
+---
+
+## 🔬 Advanced Example (Navigation, Lazy Loading, Foreign Keys)
+
 
 ```csharp
 using EntityFrameworkZip;
@@ -327,22 +328,56 @@ db.SaveChanges();
 
 ---
 
+## 🎯 Use Cases
+
+✅ Testing and mocking EF-style data access without a database
+
+✅ Save games or configuration snapshots in games and desktop apps
+
+✅ Portable offline data for single-user apps
+
+✅ Teaching LINQ and EF patterns without needing SQL Server or SQLite
+
+✅ Import/export of structured data in a single zipped file
+
+---
 ## ❗ Notes
 
-This is an in-memory database — data is only saved if you explicitly call SaveChanges()
+- This is an **in-memory** database — data is only saved if you explicitly call `SaveChanges()`.
 
-All entities must implement the IEntity interface (with at least an Id property)
+- All entities must implement the `IEntity` interface (with at least an `Id` property).
 
-Foreign key relationships are automatically managed 
+- Foreign key relationships are **automatically managed**.
+
+- **One-to-many** relationships:
+  - You can add or remove items directly from the navigation list on the entity.
+
+- **Many-to-one** relationships:
+  - These must be set manually via the foreign key `{EntityName}Id` property.
+  - The navigation property is read-only and automatically resolved based on the ID — 
+    it only needs to be included in the corresponding `DbSet`.
+
 
 ---
 
 ## 📄 License
-
-MIT — free to use and modify.
+MIT — free to use, modify, and distribute.
 
 ---
 
 ## 💬 Feedback or Contributions?
+Found a bug? Have an idea for a feature?
+Feel free to open an issue or contribute via pull request!
 
-Found a bug? Want to suggest a feature? Feel free to open an issue or contribute via pull request!
+---
+
+## 📝 Todo List
+
+- [ ] Implement Attach functionality.
+
+- [ ] Improve support for virtual ICollection<> and IEnumerable<>:
+Ensure the insert function updates existing items already in the database, or define a clear behavior for such cases.
+
+- [ ] Investigate using entity proxies via Castle.DynamicProxy:
+Still evaluating whether switching to a proxy-based system is worth the added complexity.
+
