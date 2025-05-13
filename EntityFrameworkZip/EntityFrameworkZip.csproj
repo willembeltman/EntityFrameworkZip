@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>EntityFrameworkZip — A Lightweight, In-Memory EF-Style Database with Zip File Persistence</Title>
+    <Authors>Willem-Jan Beltman</Authors>
+    <Company>Beltman Software Design</Company>
+    <Description>EntityFrameworkZip is a lightweight, Entity Framework–inspired in-memory database that allows you to persist your data to a single .zip file — and reload it just as easily. Ideal for testing, prototyping, or small standalone applications, it offers a familiar DbContext-like experience without requiring a full database engine.
+
+Key Features:
+
+- EF-style API with support for DbSet&lt;T&gt; and LINQ queries
+- Fully in-memory operation — no external database needed
+- Persist and load entire database state from a .zip file
+- Great for testing, desktop apps, and portable data scenarios
+- Zero dependencies on EF Core or external storage providers
+
+Usage Scenarios:
+
+- Quickly mocking a data layer in tests or demos
+- Bundling savegames or config state in zipped form
+- Prototyping apps without needing a full backend
+- Isolated data snapshots for offline apps
+
+Simple to use. Easy to integrate. Surprisingly powerful.</Description>
+    <Copyright>2025, The Hague, The Netherlands, Beltman Software Design, Willem-Jan Beltman</Copyright>
+    <PackageProjectUrl>https://github.com/willembeltman/EntityFrameworkZip</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/willembeltman/EntityFrameworkZip</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <IncludeSymbols>False</IncludeSymbols>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <SignAssembly>False</SignAssembly>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BinarySerializer2.cs" />
+    <Compile Remove="BinarySerializer3.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
