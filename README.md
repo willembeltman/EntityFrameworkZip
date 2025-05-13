@@ -119,6 +119,7 @@ db.SaveChanges();
 Advanced example with lazy loading and foreign key relationships:
 
 ```csharp
+using EntityFrameworkZip;
 using EntityFrameworkZip.Attributes;
 using EntityFrameworkZip.Interfaces;
 
@@ -210,8 +211,6 @@ public class CompanyFinance
     public virtual Lazy<Person> HeadOfFinancePerson { get; set; }
 }
 
-namespace EntityFrameworkZip.Tests;
-
 /// <summary>
 /// Represents the application's database context, inheriting from EntityFrameworkZip's in-memory Zip-based <see cref="DbContext"/>.
 /// Unlike traditional EF contexts, this context operates entirely in memory and does not require <c>SaveChanges()</c>
@@ -244,8 +243,6 @@ public class MyDbContext : DbContext
 }
 
 // Example test application demonstrating usage of the EntityFrameworkZip in-memory database.
-using EntityFrameworkZip.Tests;
-
 // Create or load the database from a .zip file.
 // All operations are performed in-memory; the zip file is only used when SaveChanges() is called.
 var db = new MyDbContext("test.zip");
