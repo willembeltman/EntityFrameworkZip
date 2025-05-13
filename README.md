@@ -113,7 +113,7 @@ db.SaveChanges();
 
 ---
 
-## 🔬 Advanced Example (Navigation, Lazy Loading, Foreign Keys)
+## 🔬 Advanced Example (Navigation, Lazy Loading, Foreign Keys, Nested Sub Entities)
 
 
 ```csharp
