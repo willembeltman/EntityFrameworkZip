@@ -36,6 +36,7 @@ dotnet add package EntityFrameworkZip
 
 ```csharp
 
+// For simplyfied models
 #nullable disable
 
 // A simple Person entity implementing IEntity.
@@ -49,8 +50,6 @@ public class Person : IEntity
     // Lazily loaded reference to the related Company.
     public virtual Lazy<Company> Company { get; set; }
 }
-
-#nullable disable
 
 // A simple Company entity implementing IEntity.
 // Includes a collection of Employees and a Lazy-loaded Owner reference.
@@ -66,8 +65,6 @@ public class Company : IEntity
     // Lazily loaded reference to the Owner (a Person).
     public virtual Lazy<Person> Owner { get; set; }
 }
-
-#nullable disable
 
 // The database context. Inherits from the Zip-based EF-like memory database.
 public class MyDbContext : DbContext
