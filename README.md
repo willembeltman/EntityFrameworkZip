@@ -311,7 +311,7 @@ db.SaveChanges();
 
 ---
 
-## 🧠 When to Use
+## 🎯 Use Cases
 
 ✅ Unit testing without mocking databases
 
@@ -322,10 +322,6 @@ db.SaveChanges();
 ✅ Tools that bundle config/data/state in a single zip file
 
 ✅ Save game systems or file-based data snapshots
-
----
-
-## 🎯 Use Cases
 
 ✅ Testing and mocking EF-style data access without a database
 
