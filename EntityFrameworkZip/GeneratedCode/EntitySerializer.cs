@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Diagnostics;
 using System.Reflection;
 using EntityFrameworkZip.Collections;
 using EntityFrameworkZip.Helpers;
@@ -13,14 +12,24 @@ public class EntitySerializer<T>
     private Func<BinaryReader, T> ReadDelegate;
     public readonly string Code;
 
+    public void Write(BinaryWriter bw, T item)
+    {
+        WriteDelegate(bw, item);
+    }
+    public T Read(BinaryReader bw)
+    {
+        return ReadDelegate(bw);
+    }
+
     internal EntitySerializer()
     {
         var type = typeof(T);
         var className = $"{type.Name}EntitySerializer";
         var readMethodName = "EntitySerializerRead";
         var writeMethodName = "EntitySerializerWrite";
+
         Code = GenerateSerializerCode(type, className, readMethodName, writeMethodName);
-        Debug.WriteLine($"Generated {className}:\r\n{Code}");
+
         var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
         var readMethod = serializerType.GetMethod(readMethodName)!;
@@ -256,14 +265,5 @@ public class EntitySerializer<T>
 
         ms.Seek(0, SeekOrigin.Begin);
         return Assembly.Load(ms.ToArray());
-    }
-
-    public void Write(BinaryWriter bw, T item)
-    {
-        WriteDelegate(bw, item);
-    }
-    public T Read(BinaryReader bw)
-    {
-        return ReadDelegate(bw);
     }
 }

@@ -9,9 +9,12 @@ namespace EntityFrameworkZip.GeneratedCode;
 public class DbContextExtender
 {
     private Action<DbContext, ZipArchive> ExtendDbContextDelegate;
-
-
     public readonly string Code;
+
+    public void ExtendDbContext(DbContext dbContext, System.IO.Compression.ZipArchive zipArchive)
+    {
+        ExtendDbContextDelegate(dbContext, zipArchive);
+    }
 
     internal DbContextExtender(DbContext dbContext)
     {
@@ -20,6 +23,7 @@ public class DbContextExtender
         var extenderMethodName = "ExtendDbContext";
 
         Code = GenerateSerializerCode(applicationDbContextType, extenderName, extenderMethodName, dbContext);
+
         var asm = Compile(Code);
         var serializerType = asm.GetType(extenderName)!;
         var createProxyMethod = serializerType.GetMethod(extenderMethodName)!;
@@ -45,7 +49,7 @@ public class DbContextExtender
         {
             if (!ReflectionHelper.HasPublicGetter(property)) continue;
             if (!ReflectionHelper.HasPublicSetter(property)) continue;
-            //if (!ReflectionHelper.IsVirtual(property)) continue;
+            //if (!ReflectionHelper.IsVirtual(property)) continue; // I'll let this one slide
             if (!ReflectionHelper.IsDbSet(property)) continue;
 
             var propertyName = property.Name;
@@ -96,10 +100,5 @@ public static class {extenderName}
 
         ms.Seek(0, SeekOrigin.Begin);
         return Assembly.Load(ms.ToArray());
-    }
-
-    public void ExtendDbContext(DbContext dbContext, System.IO.Compression.ZipArchive zipArchive)
-    {
-        ExtendDbContextDelegate(dbContext, zipArchive);
     }
 }

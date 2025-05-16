@@ -3,15 +3,18 @@ using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
 using EntityFrameworkZip.Collections;
 using EntityFrameworkZip.Helpers;
-using EntityFrameworkZip.Interfaces;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
 public class EntityExtender<T>
 {
     private Action<T, DbContext> ExtendEntityDelegate;
-
     public readonly string Code;
+
+    public void ExtendEntity(T entity, DbContext dbContext)
+    {
+        ExtendEntityDelegate(entity, dbContext);
+    }
 
     internal EntityExtender(DbContext dbContext)
     {
@@ -20,6 +23,7 @@ public class EntityExtender<T>
         var methodName = "ExtendEntity";
 
         Code = GenerateSerializerCode(type, className, methodName, dbContext);
+
         var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
         var createProxyMethod = serializerType.GetMethod(methodName)!;
@@ -204,10 +208,5 @@ public class EntityExtender<T>
 
         ms.Seek(0, SeekOrigin.Begin);
         return Assembly.Load(ms.ToArray());
-    }
-
-    public void ExtendEntity(T entity, DbContext dbContext)
-    {
-        ExtendEntityDelegate(entity, dbContext);
     }
 }

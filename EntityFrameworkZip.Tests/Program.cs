@@ -35,7 +35,7 @@ if (testCompany.OwnerPerson.Value.Name != "Alice")
 }
 
 // Query example: select all people whose name starts with "A".
-var all = db.People.Where(p => p.Name.StartsWith("A")).ToList();
+var all = db.People.Where(p => p.CompanyId == testCompany.Id && p.Name.StartsWith("A")).ToList();
 if (all.Count != 1)
 {
     throw new Exception("Test failed: Expected 1 person, got " + all.Count);

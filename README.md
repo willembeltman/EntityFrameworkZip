@@ -119,6 +119,7 @@ db.SaveChanges();
 
 
 ```csharp
+
 using EntityFrameworkZip;
 using EntityFrameworkZip.Attributes;
 using EntityFrameworkZip.Interfaces;
@@ -282,7 +283,7 @@ if (testCompany.OwnerPerson.Value.Name != "Alice")
 }
 
 // Query example: select all people whose name starts with "A".
-var all = db.People.Where(p => p.Name.StartsWith("A")).ToList();
+var all = db.People.Where(p => p.CompanyId == testCompany.Id && p.Name.StartsWith("A")).ToList();
 if (all.Count != 1)
 {
     throw new Exception("Test failed: Expected 1 person, got " + all.Count);
@@ -314,7 +315,6 @@ if (testCompany.Finance.HeadOfFinancePerson.Value.Company.Value.Employees.Count 
 // Persist all changes to disk by saving the entire database to a .zip file.
 db.SaveChanges();
 
-// Test enum
 var db2 = new MyDbContext("test.zip");
 var company2 = db2.Companies.LastOrDefault();
 var bob2 = company2.Employees.FirstOrDefault(a => a.Name == "Bob");
