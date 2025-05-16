@@ -390,3 +390,5 @@ Ensure the insert function updates existing items already in the database, or de
 - [ ] Investigate using entity proxies via Castle.DynamicProxy:
 Still evaluating whether switching to a proxy-based system is worth the added complexity.
 
+- [ ] Add recursive removing of child entities, or at least a exception if we detect foreign keys.
+
