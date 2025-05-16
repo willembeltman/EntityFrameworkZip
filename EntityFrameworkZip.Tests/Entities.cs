@@ -3,6 +3,13 @@ using EntityFrameworkZip.Interfaces;
 
 #nullable disable
 
+public enum TestEnum
+{
+    First,
+    Second,
+    Third
+}
+
 /// <summary>
 /// Represents a person entity that implements <see cref="IEntity"/>.
 /// Contains a lazy-loaded reference to a related <see cref="Company"/>.
@@ -12,6 +19,7 @@ public class Person : IEntity
     public long Id { get; set; }
     public long CompanyId { get; set; }
     public string Name { get; set; }
+    public TestEnum TestEnum { get; set; } 
 
     /// <summary>
     /// Lazily loaded reference to the company this person belongs to.

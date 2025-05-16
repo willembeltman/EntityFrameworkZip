@@ -67,13 +67,9 @@ public class EntitySerializer<T>
             // DateTime
             // ExtendedProperties en ExtendedLists, mits alle keys gevonden kunnen worden en de dbset's bestaan
             // Non-generic Structs en classes (die zelfde types ondersteunen)
-            // Enums (checken nog)
+            // Enums
 
-
-            //writeCode += $@"System.Windows.Forms.MessageBox.Show(""{propertyName}"");";
-            //readCode += $@"System.Windows.Forms.MessageBox.Show(""{propertyName}"");";
-
-            if (ReflectionHelper.IsPrimitiveType(prop.PropertyType))
+            if (ReflectionHelper.IsPrimitiveTypeOrEnum(prop.PropertyType))
             {
                 var readMethod = GetBinaryReadMethod(prop.PropertyType);
                 var writeMethod = GetBinaryWriteMethod(prop.PropertyType, propertyName);
@@ -143,7 +139,7 @@ public class EntitySerializer<T>
                         $"to signal those properties are not serialized when the dbcontext is saved. Please mark " +
                         $"those properties as [NotMapped] if this is intended.");
 
-                if (ReflectionHelper.IsNulleble(prop)) // || prop.PropertyType.IsValueType && 
+                if (ReflectionHelper.IsNulleble(prop)) 
                 {
                     writeCode += @$"
 
@@ -210,11 +206,13 @@ public class EntitySerializer<T>
 
     private static string GetBinaryWriteMethod(Type type, string propertyName)
     {
+        if (type.IsEnum) return $"writer.Write((int)value.{propertyName})";
         if (type == typeof(DateTime)) return $"writer.Write(value.{propertyName}.ToBinary());";
         return $"writer.Write(value.{propertyName})";
     }
     private static string GetBinaryReadMethod(Type type)
     {
+        if (type.IsEnum) return $"({type.FullName})reader.ReadInt32()";
         if (type == typeof(bool)) return "reader.ReadBoolean()";
         if (type == typeof(byte)) return "reader.ReadByte()";
         if (type == typeof(sbyte)) return "reader.ReadSByte()";

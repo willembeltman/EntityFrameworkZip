@@ -18,6 +18,7 @@ db.People.Add(bob);
 var testCompany = new Company { Name = "Test Company" };
 testCompany.Employees.Add(alice);
 testCompany.Employees.Add(bob);
+bob.TestEnum = TestEnum.Second;
 
 // Add the company to the context.
 // This will automatically link the previously added Person entities via the navigation property.
@@ -65,3 +66,11 @@ if (testCompany.Finance.HeadOfFinancePerson.Value.Company.Value.Employees.Count 
 
 // Persist all changes to disk by saving the entire database to a .zip file.
 db.SaveChanges();
+
+var db2 = new MyDbContext("test.zip");
+var company2 = db2.Companies.LastOrDefault();
+var bob2 = company2.Employees.FirstOrDefault(a => a.Name == "Bob");
+if (bob2.TestEnum != TestEnum.Second)
+{
+    throw new Exception("Test failed: Bob's TestEnum is not Second.");
+}

@@ -75,6 +75,8 @@ public class MyDbContext : DbContext
     public virtual DbSet<Person> People { get; set; }
 }
 
+#nulleble enable
+
 // Create or load a database from a zip file.
 var db = new MyDbContext("test.zip");
 
@@ -132,6 +134,7 @@ public class Person : IEntity
     public long Id { get; set; }
     public long CompanyId { get; set; }
     public string Name { get; set; }
+    public TestEnum TestEnum { get; set; } 
 
     /// <summary>
     /// Lazily loaded reference to the company this person belongs to.
@@ -240,7 +243,11 @@ public class MyDbContext : DbContext
     public virtual DbSet<Person> People { get; set; }
 }
 
+#nullable enable
+
 // Example test application demonstrating usage of the EntityFrameworkZip in-memory database.
+using EntityFrameworkZip.Tests;
+
 // Create or load the database from a .zip file.
 // All operations are performed in-memory; the zip file is only used when SaveChanges() is called.
 var db = new MyDbContext("test.zip");
@@ -258,6 +265,7 @@ db.People.Add(bob);
 var testCompany = new Company { Name = "Test Company" };
 testCompany.Employees.Add(alice);
 testCompany.Employees.Add(bob);
+bob.TestEnum = TestEnum.Second;
 
 // Add the company to the context.
 // This will automatically link the previously added Person entities via the navigation property.
@@ -306,6 +314,14 @@ if (testCompany.Finance.HeadOfFinancePerson.Value.Company.Value.Employees.Count 
 // Persist all changes to disk by saving the entire database to a .zip file.
 db.SaveChanges();
 
+// Test enum
+var db2 = new MyDbContext("test.zip");
+var company2 = db2.Companies.LastOrDefault();
+var bob2 = company2.Employees.FirstOrDefault(a => a.Name == "Bob");
+if (bob2.TestEnum != TestEnum.Second)
+{
+    throw new Exception("Test failed: Bob's TestEnum is not Second.");
+}
 
 ````
 

@@ -2,13 +2,13 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using EntityFrameworkZip.Helpers;
-using EntityFrameworkZip.Interfaces;
+using System.IO.Compression;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
 public class DbContextExtender
 {
-    private Action<DbContext> ExtendDbContextDelegate;
+    private Action<DbContext, ZipArchive> ExtendDbContextDelegate;
 
 
     public readonly string Code;
@@ -24,8 +24,8 @@ public class DbContextExtender
         var serializerType = asm.GetType(extenderName)!;
         var createProxyMethod = serializerType.GetMethod(extenderMethodName)!;
 
-        ExtendDbContextDelegate = (Action<DbContext>)Delegate.CreateDelegate(
-            typeof(Action<DbContext>), createProxyMethod)!;
+        ExtendDbContextDelegate = (Action<DbContext, ZipArchive>)Delegate.CreateDelegate(
+            typeof(Action<DbContext, ZipArchive>), createProxyMethod)!;
     }
 
     private string GenerateSerializerCode(Type applicationDbContextType, string extenderName, string extenderMethodName, DbContext dbContext)
@@ -55,7 +55,7 @@ public class DbContextExtender
             var propertyTypeFullName = propertyType.FullName;
 
             propertiesCode += $@"
-        db.{propertyName} = new {dbSetFullName}<{propertyTypeFullName}>(db);";
+        db.{propertyName} = new {dbSetFullName}<{propertyTypeFullName}>(db, zipArchive);";
         }
 
         return $@"
@@ -63,7 +63,7 @@ using System;
 
 public static class {extenderName}
 {{
-    public static void {extenderMethodName}({dbContextTypeFullName} dbContext)
+    public static void {extenderMethodName}({dbContextTypeFullName} dbContext, System.IO.Compression.ZipArchive zipArchive)
     {{
         var db = dbContext as {applicationDbContextFullName};
         if (db == null) throw new Exception(""dbContext is not of type {applicationDbContextName}"");{propertiesCode}
@@ -98,8 +98,8 @@ public static class {extenderName}
         return Assembly.Load(ms.ToArray());
     }
 
-    public void ExtendDbContext(DbContext dbContext)
+    public void ExtendDbContext(DbContext dbContext, System.IO.Compression.ZipArchive zipArchive)
     {
-        ExtendDbContextDelegate(dbContext);
+        ExtendDbContextDelegate(dbContext, zipArchive);
     }
 }

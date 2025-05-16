@@ -7,6 +7,26 @@ namespace EntityFrameworkZip.Helpers
 {
     public static class ReflectionHelper
     {
+
+        private static readonly HashSet<Type> PrimitiveTypes = new()
+        {
+            typeof(bool),
+            typeof(byte),
+            typeof(sbyte),
+            typeof(char),
+            typeof(decimal),
+            typeof(double),
+            typeof(float),
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(string),
+            typeof(DateTime),
+        };
+
         // Controleert of de eigenschap een foreign key attribuut heeft
         public static bool HasForeignKeyAttribute(PropertyInfo prop)
         {
@@ -57,13 +77,6 @@ namespace EntityFrameworkZip.Helpers
             return typeof(IEnumerable<>).IsAssignableFrom(typeDef) ||
                    prop.PropertyType.GetInterfaces()
                        .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
-        }
-
-        private static bool IsConcurrentQueue(PropertyInfo prop)
-        {
-            var type = prop.PropertyType;
-            return type.IsGenericType &&
-                   type.GetGenericTypeDefinition() == typeof(ConcurrentQueue<>);
         }
 
         // Controleert of de property publiek toegankelijk is (ten minste met een getter)
@@ -128,45 +141,6 @@ namespace EntityFrameworkZip.Helpers
             return typeDef == typeof(DbSet<>);
         }
 
-        private static readonly HashSet<Type> PrimitiveTypes = new()
-        {
-            typeof(bool),
-            typeof(byte),
-            typeof(sbyte),
-            typeof(char),
-            typeof(decimal),
-            typeof(double),
-            typeof(float),
-            typeof(short),
-            typeof(ushort),
-            typeof(int),
-            typeof(uint),
-            typeof(long),
-            typeof(ulong),
-            typeof(string),
-            typeof(DateTime),
-        };
-
-        public static bool HasExtendedPropertiesWithoutForeignKeyAttributeOrHasExtendedLists(Type type, HashSet<Type>? visitedTypes = null)
-        {
-            visitedTypes ??= new HashSet<Type>();
-            if (visitedTypes.Contains(type))
-                return true; // Avoid cycles
-
-            visitedTypes.Add(type);
-
-            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-            {
-                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
-                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-
-                if (ReflectionHelper.IsExtendedProperty(prop) &&
-                    !ReflectionHelper.HasForeignKeyAttribute(prop)) return true;
-                if (ReflectionHelper.IsExtendedList(prop)) return true;
-            }
-
-            return false;
-        }
         public static bool HasExtendedProperties(Type type, HashSet<Type>? visitedTypes = null)
         {
             visitedTypes ??= new HashSet<Type>();
@@ -254,8 +228,7 @@ namespace EntityFrameworkZip.Helpers
                 if (ReflectionHelper.IsExtendedProperty(prop)) continue;
                 if (ReflectionHelper.IsExtendedList(prop)) continue;
 
-                if (ReflectionHelper.IsPrimitiveType(propType)) continue;
-                if (ReflectionHelper.IsEnum(propType)) continue; // Checken!
+                if (ReflectionHelper.IsPrimitiveTypeOrEnum(propType)) continue;
 
                 if (ReflectionHelper.IsGenericType(propType)) return false;
                 if (!ReflectionHelper.HasAnyProperties(propType)) return false;
@@ -286,10 +259,6 @@ namespace EntityFrameworkZip.Helpers
             return propType.GetProperties().Any();
         }
 
-        public static bool IsEnum(Type propType)
-        {
-            return propType.IsEnum;
-        }
         public static bool HasIEnumerableInterface(Type propType)
         {
             if (propType == typeof(string)) return false;
@@ -299,15 +268,12 @@ namespace EntityFrameworkZip.Helpers
                 .Any(i => i == andere);
         }
 
-        public static bool IsArray(PropertyInfo prop) =>
-            prop.PropertyType.IsArray;
-
-        public static bool IsPrimitiveType(Type propertyType)
+        public static bool IsPrimitiveTypeOrEnum(Type propertyType)
         {
-            return (PrimitiveTypes.Contains(propertyType));
+            return (PrimitiveTypes.Contains(propertyType)) || propertyType.IsEnum;
         }
 
-        internal static bool HasIEntityInterface(Type type)
+        public static bool HasIEntityInterface(Type type)
         {
             if (type == typeof(string)) return false;
 

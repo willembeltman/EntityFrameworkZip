@@ -19,7 +19,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
     public DbContext DbContext { get; }
     public string TypeName { get; }
 
-    public DbSet(DbContext dbContext)
+    public DbSet(DbContext dbContext, ZipArchive zipArchive)
     {
         DbContext = dbContext;
         DbContext.AddDbSet(this);
@@ -30,7 +30,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         EntitySerializer = EntitySerializerCollection.GetOrCreate<T>();
         EntityExtender = EntityExtenderCollection.GetOrCreate<T>(DbContext);
 
-        LoadCache(DbContext.ZipArchive);
+        LoadCache(zipArchive);
     }
 
     public void LoadCache(ZipArchive zipArchive)
