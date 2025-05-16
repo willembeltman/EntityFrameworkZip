@@ -126,6 +126,13 @@ using EntityFrameworkZip.Interfaces;
 
 #nullable disable
 
+public enum TestEnum
+{
+    First,
+    Second,
+    Third
+}
+
 /// <summary>
 /// Represents a person entity that implements <see cref="IEntity"/>.
 /// Contains a lazy-loaded reference to a related <see cref="Company"/>.
