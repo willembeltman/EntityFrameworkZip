@@ -36,13 +36,8 @@ Simple to use. Easy to integrate. Surprisingly powerful.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <SignAssembly>False</SignAssembly>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="BinarySerializer2.cs" />
-    <Compile Remove="BinarySerializer3.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\LICENSE">
