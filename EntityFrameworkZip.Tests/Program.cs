@@ -74,8 +74,8 @@ if (!testCompany.Employees.Any(a => a.Company.Value.Employees.Any(b => b.Id == a
 db.SaveChanges();
 
 var db2 = new MyDbContext("test.zip");
-var company2 = db2.Companies.LastOrDefault();
-var bob2 = company2.Employees.FirstOrDefault(a => a.Name == "Bob");
+var company2 = db2.Companies.Last();
+var bob2 = company2.Employees.First(a => a.Name == "Bob");
 if (bob2.TestEnum != TestEnum.Second)
 {
     throw new Exception("Test failed: Bob's TestEnum is not Second.");

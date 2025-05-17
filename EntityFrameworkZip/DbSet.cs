@@ -27,8 +27,8 @@ public class DbSet<T> : ICollection<T>, IDbSet
         TypeName = typeof(T).Name;
         Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         Cache = new Dictionary<long, T>();
-        EntitySerializer = EntitySerializerCollection.GetOrCreate<T>();
-        EntityExtender = EntityExtenderCollection.GetOrCreate<T>(DbContext);
+        EntitySerializer = EntitySerializerCollection.GetOrCreate<T>(dbContext);
+        EntityExtender = EntityExtenderCollection.GetOrCreate<T>(dbContext);
 
         LoadCache(zipArchive);
     }
@@ -60,7 +60,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
                 if (dataPosition >= 0)
                 {
                     dataStream.Position = dataPosition;
-                    var item = EntitySerializer.Read(dataReader!);
+                    var item = EntitySerializer.Read(dataReader!, DbContext);
                     //EntityExtender.ExtendEntity(item, DbContext);
                     Cache[item.Id] = item;
                 }
@@ -92,7 +92,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
             foreach (var item in Cache.Values)
             {
                 indexWriter.Write(dataStream.Position);
-                EntitySerializer.Write(dataWriter, item);
+                EntitySerializer.Write(dataWriter, item, DbContext);
             }
         }
         finally

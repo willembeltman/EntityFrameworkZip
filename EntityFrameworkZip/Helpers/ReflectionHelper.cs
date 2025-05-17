@@ -55,28 +55,12 @@ namespace EntityFrameworkZip.Helpers
             var type = prop.PropertyType;
             return type.IsGenericType &&
                    type.GetGenericTypeDefinition() == typeof(ICollection<>);
-
-            if (prop.PropertyType == typeof(string)) return false;
-            if (!prop.PropertyType.IsGenericType) return false;
-
-            var typeDef = prop.PropertyType.GetGenericTypeDefinition();
-            return typeof(ICollection<>).IsAssignableFrom(typeDef) ||
-                   prop.PropertyType.GetInterfaces()
-                       .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
         }
         public static bool IsIEnumerable(PropertyInfo prop)
         {
             var type = prop.PropertyType;
             return type.IsGenericType &&
                    type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
-
-            if (prop.PropertyType == typeof(string)) return false;
-            if (!prop.PropertyType.IsGenericType) return false;
-
-            var typeDef = prop.PropertyType.GetGenericTypeDefinition();
-            return typeof(IEnumerable<>).IsAssignableFrom(typeDef) ||
-                   prop.PropertyType.GetInterfaces()
-                       .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
         }
 
         // Controleert of de property publiek toegankelijk is (ten minste met een getter)

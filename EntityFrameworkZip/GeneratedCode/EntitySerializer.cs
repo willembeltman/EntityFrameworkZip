@@ -8,41 +8,41 @@ namespace EntityFrameworkZip.GeneratedCode;
 
 public class EntitySerializer<T>
 {
-    private Action<BinaryWriter, T> WriteDelegate;
-    private Func<BinaryReader, T> ReadDelegate;
+    private Action<BinaryWriter, T, DbContext> WriteDelegate;
+    private Func<BinaryReader, DbContext, T> ReadDelegate;
     public readonly string Code;
 
-    public void Write(BinaryWriter bw, T item)
+    public void Write(BinaryWriter bw, T item, DbContext dbContext)
     {
-        WriteDelegate(bw, item);
+        WriteDelegate(bw, item, dbContext);
     }
-    public T Read(BinaryReader bw)
+    public T Read(BinaryReader bw, DbContext dbContext)
     {
-        return ReadDelegate(bw);
+        return ReadDelegate(bw, dbContext);
     }
 
-    internal EntitySerializer()
+    internal EntitySerializer(DbContext dbContext)
     {
         var type = typeof(T);
         var className = $"{type.Name}EntitySerializer";
         var readMethodName = "EntitySerializerRead";
         var writeMethodName = "EntitySerializerWrite";
 
-        Code = GenerateSerializerCode(type, className, readMethodName, writeMethodName);
+        Code = GenerateSerializerCode(type, className, readMethodName, writeMethodName, dbContext);
 
         var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
         var readMethod = serializerType.GetMethod(readMethodName)!;
         var writeMethod = serializerType.GetMethod(writeMethodName)!;
 
-        ReadDelegate = (Func<BinaryReader, T>)Delegate.CreateDelegate(
-            typeof(Func<BinaryReader, T>), readMethod)!;
+        ReadDelegate = (Func<BinaryReader, DbContext, T>)Delegate.CreateDelegate(
+            typeof(Func<BinaryReader, DbContext, T>), readMethod)!;
 
-        WriteDelegate = (Action<BinaryWriter, T>)Delegate.CreateDelegate(
-            typeof(Action<BinaryWriter, T>), writeMethod)!;
+        WriteDelegate = (Action<BinaryWriter, T, DbContext>)Delegate.CreateDelegate(
+            typeof(Action<BinaryWriter, T, DbContext>), writeMethod)!;
     }
 
-    private string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName)
+    private string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName, DbContext dbContext)
     {
         var className = type.Name;
         var fullClassName = type.FullName;
@@ -51,12 +51,18 @@ public class EntitySerializer<T>
         var readCode = string.Empty;
         var newCode = string.Empty;
 
+        var dbContextType = typeof(DbContext);
+        var dbContextTypeFullName = dbContextType.FullName;
+
         var binarySerializerType = typeof(EntitySerializer<>);
         var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
 
         var entitySerializerCollectionType = typeof(EntitySerializerCollection);
         var entitySerializerCollectionTypeFullName = entitySerializerCollectionType.FullName;
         var entitySerializerCollectionTypeMethod = entitySerializerCollectionType.GetMethods().First().Name;
+
+        var applicationDbContextType = dbContext.GetType();
+        var applicationDbContextTypeFullName = applicationDbContextType.FullName;
 
         var props = type.GetProperties();
         foreach (var prop in props)
@@ -157,8 +163,8 @@ public class EntitySerializer<T>
                         else
                         {{
                             writer.Write(false);
-                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
-                            {propertyName}Serializer.Write(writer, value.{propertyName});
+                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                            {propertyName}Serializer.Write(writer, value.{propertyName}, db);
                         }}";
 
                     readCode += @$"
@@ -166,8 +172,8 @@ public class EntitySerializer<T>
                         {prop.PropertyType} {propertyName} = null;
                         if (!reader.ReadBoolean())
                         {{
-                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
-                            {propertyName} = {propertyName}Serializer.Read(reader);
+                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                            {propertyName} = {propertyName}Serializer.Read(reader, db);
                         }}";
 
                 }
@@ -175,13 +181,13 @@ public class EntitySerializer<T>
                 {
                     writeCode += @$"
 
-                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
-                        {propertyName}Serializer.Write(writer, value.{propertyName});";
+                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                        {propertyName}Serializer.Write(writer, value.{propertyName}, db);";
 
                     readCode += @$"
 
-                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
-                        var {propertyName} = {propertyName}Serializer.Read(reader);";
+                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                        var {propertyName} = {propertyName}Serializer.Read(reader, db);";
 
                 }
             }
@@ -197,12 +203,16 @@ public class EntitySerializer<T>
 
             public static class {serializerName}
             {{
-                public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value)
-                {{{writeCode}
+                public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value, {dbContextTypeFullName} objDb)
+                {{
+                    var db = objDb as {applicationDbContextTypeFullName};
+                    {writeCode}
                 }}
 
-                public static {fullClassName} {readMethodName}(BinaryReader reader)
-                {{{readCode}
+                public static {fullClassName} {readMethodName}(BinaryReader reader, {dbContextTypeFullName} objDb)
+                {{
+                    var db = objDb as {applicationDbContextTypeFullName};
+                    {readCode}
 
                     var item = new {fullClassName}
                     {{{newCode}

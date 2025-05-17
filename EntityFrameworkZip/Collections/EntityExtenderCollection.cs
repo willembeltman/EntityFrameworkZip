@@ -1,20 +1,21 @@
 ﻿using EntityFrameworkZip.GeneratedCode;
-using EntityFrameworkZip.Interfaces;
 
 namespace EntityFrameworkZip.Collections;
 
 public static class EntityExtenderCollection
 {
-    private static readonly Dictionary<Type, object> EntityExtenders = new();
+    private static readonly Dictionary<EntityExtenderKey, object> EntityExtenders = new();
 
     public static EntityExtender<T> GetOrCreate<T>(DbContext dbContext)
     {
         var type = typeof(T);
-        var serializer = EntityExtenders.ContainsKey(type) ? EntityExtenders[type] : null;
+        var applicationDbContextType = dbContext.GetType();
+        var search = new EntityExtenderKey(type, applicationDbContextType);
+        var serializer = EntityExtenders.ContainsKey(search) ? EntityExtenders[search] : null;
         if (serializer == null)
         {
             var newSerializer = new EntityExtender<T>(dbContext);
-            EntityExtenders[type] = newSerializer;
+            EntityExtenders[search] = newSerializer;
             return newSerializer;
         }
         else

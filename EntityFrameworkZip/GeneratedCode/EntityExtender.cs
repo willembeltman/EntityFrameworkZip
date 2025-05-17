@@ -159,7 +159,7 @@ public class EntityExtender<T>
                 public static void {methodName}({fullClassName} item, {dbContextTypeFullName} objDb)
                 {{
                     var db = objDb as {applicationDbContextTypeFullName};
-            {lazyCode}
+                    {lazyCode}
                 }}
             }}";
     }
