@@ -64,6 +64,12 @@ if (testCompany.Finance.HeadOfFinancePerson.Value.Company.Value.Employees.Count 
     throw new Exception("Test failed: Recursive navigation failed.");
 }
 
+// Verify recursive read lock
+if (!testCompany.Employees.Any(a => a.Company.Value.Employees.Any(b => b.Id == a.Id)))
+{
+    throw new Exception("Test failed: Recursive read lock failed.");
+}
+
 // Persist all changes to disk by saving the entire database to a .zip file.
 db.SaveChanges();
 

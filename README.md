@@ -253,9 +253,6 @@ public class MyDbContext : DbContext
 
 #nullable enable
 
-// Example test application demonstrating usage of the EntityFrameworkZip in-memory database.
-using EntityFrameworkZip.Tests;
-
 // Create or load the database from a .zip file.
 // All operations are performed in-memory; the zip file is only used when SaveChanges() is called.
 var db = new MyDbContext("test.zip");
@@ -317,6 +314,12 @@ if (testCompany.Finance.HeadOfFinancePerson.Value.Name != "Bob")
 if (testCompany.Finance.HeadOfFinancePerson.Value.Company.Value.Employees.Count != 2)
 {
     throw new Exception("Test failed: Recursive navigation failed.");
+}
+
+// Verify recursive read lock
+if (!testCompany.Employees.Any(a => a.Company.Value.Employees.Any(b => b.Id == a.Id)))
+{
+    throw new Exception("Test failed: Recursive read lock failed.");
 }
 
 // Persist all changes to disk by saving the entire database to a .zip file.

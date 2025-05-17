@@ -25,7 +25,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         DbContext.AddDbSet(this);
 
         TypeName = typeof(T).Name;
-        Lock = new ReaderWriterLockSlim();
+        Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         Cache = new Dictionary<long, T>();
         EntitySerializer = EntitySerializerCollection.GetOrCreate<T>();
         EntityExtender = EntityExtenderCollection.GetOrCreate<T>(DbContext);
