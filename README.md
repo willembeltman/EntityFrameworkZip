@@ -2,10 +2,7 @@
 
 A lightweight, in-memory Entity Framework-style database that saves and loads from a single `.zip` file.
 
-EntityFrameworkZip is designed for scenarios where you want the feel of Entity Framework but without needing a 
-real database. It runs entirely in memory and lets you persist your data by zipping everything into a single file. 
-Great for testing, demos, prototyping, offline apps, or even small-scale real-world scenarios like save games or 
-config snapshots.
+EntityFrameworkZip is designed for scenarios where you want the feel of Entity Framework but without needing a real database. It runs entirely in memory and lets you persist your data by zipping everything into a single file. Great for testing, demos, prototyping, offline apps, or even small-scale real-world scenarios like save games or config snapshots.
 
 ---
 
@@ -40,7 +37,7 @@ dotnet add package EntityFrameworkZip
 #nullable disable
 
 // A simple Person entity implementing IEntity.
-// Includes a reference to a Company via a Lazy<Company> property.
+// Includes a reference to a Company via a ILazy<Company> property.
 public class Person : IEntity
 {
     public long Id { get; set; }
@@ -48,11 +45,11 @@ public class Person : IEntity
     public string Name { get; set; }
 
     // Lazily loaded reference to the related Company.
-    public virtual Lazy<Company> Company { get; set; }
+    public virtual ILazy<Company> Company { get; set; }
 }
 
 // A simple Company entity implementing IEntity.
-// Includes a collection of Employees and a Lazy-loaded Owner reference.
+// Includes a collection of Employees and a ILazy-loaded Owner reference.
 public class Company : IEntity
 {
     public long Id { get; set; }
@@ -63,7 +60,7 @@ public class Company : IEntity
     public virtual ICollection<Person> Employees { get; set; } = new List<Person>();
 
     // Lazily loaded reference to the Owner (a Person).
-    public virtual Lazy<Person> Owner { get; set; }
+    public virtual ILazy<Person> Owner { get; set; }
 }
 
 // The database context. Inherits from the Zip-based EF-like memory database.
@@ -117,12 +114,9 @@ db.SaveChanges();
 
 ## 🔬 Advanced Example (Navigation, Lazy Loading, Foreign Keys, Nested Sub Entities)
 
-
 ```csharp
 
 using EntityFrameworkZip;
-using EntityFrameworkZip.Attributes;
-using EntityFrameworkZip.Interfaces;
 
 #nullable disable
 
@@ -147,7 +141,7 @@ public class Person : IEntity
     /// <summary>
     /// Lazily loaded reference to the company this person belongs to.
     /// </summary>
-    public virtual Lazy<Company> Company { get; set; }
+    public virtual ILazy<Company> Company { get; set; }
 }
 
 
@@ -173,7 +167,7 @@ public class Company : IEntity
     /// The <see cref="ForeignKeyAttribute"/> specifies that the foreign key is <see cref="OwnerId"/>.
     /// </summary>
     [ForeignKey("OwnerId")]
-    public virtual Lazy<Person> OwnerPerson { get; set; }
+    public virtual ILazy<Person> OwnerPerson { get; set; }
 
     /// <summary>
     /// A temporary list of to-do items. This property is not mapped to the database.
@@ -187,6 +181,7 @@ public class Company : IEntity
     /// Sub-entities follow the same rules as regular entities and can contain:
     /// - Primitive types
     /// - <see cref="DateTime"/> values
+    /// - Enums
     /// - Lazy-loaded navigation properties
     /// - Collections (e.g., <see cref="ICollection{T}"/>)
     /// - Other sub-entities
@@ -217,7 +212,7 @@ public class CompanyFinance
     /// This must be defined within the same class, as parent classes have no visibility into the sub-entity’s structure.
     /// </summary>
     [ForeignKey("HeadOfFinancePersonId")]
-    public virtual Lazy<Person> HeadOfFinancePerson { get; set; }
+    public virtual ILazy<Person> HeadOfFinancePerson { get; set; }
 }
 
 /// <summary>
@@ -260,6 +255,7 @@ var db = new MyDbContext("test.zip");
 // Create Person entities.
 var alice = new Person { Name = "Alice" };
 var bob = new Person { Name = "Bob" };
+bob.TestEnum = TestEnum.Second;
 
 // Add persons to the context.
 db.People.Add(alice);
@@ -270,7 +266,6 @@ db.People.Add(bob);
 var testCompany = new Company { Name = "Test Company" };
 testCompany.Employees.Add(alice);
 testCompany.Employees.Add(bob);
-bob.TestEnum = TestEnum.Second;
 
 // Add the company to the context.
 // This will automatically link the previously added Person entities via the navigation property.
@@ -286,8 +281,18 @@ if (testCompany.OwnerPerson.Value.Name != "Alice")
     throw new Exception("Test failed: Owner is not Alice.");
 }
 
+// Set the owner relationship explicitly.
+// Note: OwnerId must be set manually; the OwnerPerson lazy reference will resolve after adding to the context.
+testCompany.OwnerId = bob.Id;
+
+// Verify that lazy loading of the OwnerPerson property works correctly.
+if (testCompany.OwnerPerson.Value.Name != "Bob")
+{
+    throw new Exception("Test failed: Owner is not Alice.");
+}
+
 // Query example: select all people whose name starts with "A".
-var all = db.People.Where(p => p.CompanyId == testCompany.Id && p.Name.StartsWith("A")).ToList();
+var all = db.People.Where(p => p.CompanyId == testCompany.Id && p.Name.StartsWith('A')).ToList();
 if (all.Count != 1)
 {
     throw new Exception("Test failed: Expected 1 person, got " + all.Count);
@@ -326,8 +331,8 @@ if (!testCompany.Employees.Any(a => a.Company.Value.Employees.Any(b => b.Id == a
 db.SaveChanges();
 
 var db2 = new MyDbContext("test.zip");
-var company2 = db2.Companies.LastOrDefault();
-var bob2 = company2.Employees.FirstOrDefault(a => a.Name == "Bob");
+var company2 = db2.Companies.Last();
+var bob2 = company2.Employees.First(a => a.Name == "Bob");
 if (bob2.TestEnum != TestEnum.Second)
 {
     throw new Exception("Test failed: Bob's TestEnum is not Second.");
@@ -360,6 +365,7 @@ if (bob2.TestEnum != TestEnum.Second)
 ✅ Import/export of structured data in a single zipped file
 
 ---
+
 ## ❗ Notes
 
 - This is an **in-memory** database — data is only saved if you explicitly call `SaveChanges()`.
@@ -371,6 +377,7 @@ if (bob2.TestEnum != TestEnum.Second)
 - **One-to-many** relationships:
   - You can add or remove items directly from the navigation list on the entity.
 
+
 - **Many-to-one** relationships:
   - These must be set manually via the foreign key `{EntityName}Id` property.
   - The navigation property is read-only and automatically resolved based on the ID — 
@@ -379,12 +386,43 @@ if (bob2.TestEnum != TestEnum.Second)
 
 ---
 
+## ⚠️ Breaking Change in Lazy Navigation Properties
+
+As of version 1.0.8, Lazy<T> has been replaced with a new interface: ILazy<T>.
+
+Why the change?
+Previously, the internal Lazy<T> class would cache the related entity after the first lookup. If you later changed the foreign key ({EntityName}Id), the cached object would still point to the old value — resulting in stale data and hard-to-find bugs.
+
+To fix this, the new ILazy<T> interface allows dynamic reloading. It ensures that each time you access the navigation property, it re-checks the current foreign key and fetches the correct related entity accordingly.
+
+What do I need to change?
+Simply update your properties or fields:
+
+// Before:
+```csharp
+private Lazy<Person> Owner;
+```
+
+// After:
+```csharp
+private ILazy<Person> Owner;
+```
+
+Sorry for the inconvenience
+We try to keep the interface stable, but this change was necessary to prevent subtle data bugs in apps that modify foreign key references at runtime.
+
+If you run into issues updating your code, feel free to open an issue — we're happy to help.
+
+---
+
 ## 📄 License
+
 MIT — free to use, modify, and distribute.
 
 ---
 
 ## 💬 Feedback or Contributions?
+
 Found a bug? Have an idea for a feature?
 Feel free to open an issue or contribute via pull request!
 
@@ -392,8 +430,8 @@ Feel free to open an issue or contribute via pull request!
 
 ## 📝 Todo List
 
-- [ ] Implement Attach functionality.
-
+- [X] Implement Attach functionality. (Done in 1.0.8)
+s
 - [ ] Improve support for virtual ICollection<> and IEnumerable<>:
 Ensure the insert function updates existing items already in the database, or define a clear behavior for such cases.
 

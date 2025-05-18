@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using EntityFrameworkZip.Collections;
 using EntityFrameworkZip.Helpers;
-using EntityFrameworkZip.Extended;
+using EntityFrameworkZip.ExtendedEntity;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
@@ -42,7 +42,7 @@ public class EntityExtender<T> : CodeCompiler
         var foreignEntityCollectionType = typeof(LazyForeignEntityCollection<,>);
         var foreignEntityCollectionFullName = foreignEntityCollectionType.FullName!.Split('`').First();
 
-        var foreignEntityLazyType = typeof(Lazy<>);
+        var foreignEntityLazyType = typeof(LazyForeignEntity<>);
         var foreignEntityLazyFullName = foreignEntityLazyType.FullName!.Split('`').First();
 
         var entitySerializerType = typeof(EntitySerializer<>);
@@ -123,7 +123,7 @@ public class EntityExtender<T> : CodeCompiler
             }
             else if (ReflectionHelper.IsExtendedForeignEntityProperty(prop))
             {
-                var foreignType = ReflectionHelper.GetLazyType(prop);
+                var foreignType = ReflectionHelper.GetILazyType(prop);
                 var foreignKeyName = $"{propertyName}Id";
                 if (ReflectionHelper.HasForeignKeyAttribute(prop))
                 {

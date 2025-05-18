@@ -60,11 +60,11 @@ namespace EntityFrameworkZip.Helpers
             return type.IsGenericType &&
                    type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
         }
-        private static bool IsLazy(PropertyInfo prop)
+        private static bool IsILazy(PropertyInfo prop)
         {
             var type = prop.PropertyType;
             return type.IsGenericType &&
-                   type.GetGenericTypeDefinition() == typeof(Lazy<>);
+                   type.GetGenericTypeDefinition() == typeof(ILazy<>);
         }
 
         // Controleert of de property publiek toegankelijk is (ten minste met een getter)
@@ -89,7 +89,7 @@ namespace EntityFrameworkZip.Helpers
         {
             return prop.PropertyType.GenericTypeArguments[0];
         }
-        public static Type GetLazyType(PropertyInfo prop)
+        public static Type GetILazyType(PropertyInfo prop)
         {
             return prop.PropertyType.GenericTypeArguments[0];
         }
@@ -152,7 +152,7 @@ namespace EntityFrameworkZip.Helpers
         {
             return
                 ReflectionHelper.IsVirtual(prop) &&
-                (ReflectionHelper.IsLazy(prop) || ReflectionHelper.IsIEnumerable(prop) || ReflectionHelper.IsICollection(prop));
+                (ReflectionHelper.IsILazy(prop) || ReflectionHelper.IsIEnumerable(prop) || ReflectionHelper.IsICollection(prop));
         }
 
         public static bool IsExtendedForeignListProperty(PropertyInfo prop)

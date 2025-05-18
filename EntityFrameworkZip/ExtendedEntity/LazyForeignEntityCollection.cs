@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace EntityFrameworkZip.Extended;
+namespace EntityFrameworkZip.ExtendedEntity;
 
 /// <summary>
 /// PLEASE DO NOT USE THIS AS INITIALIZATION FOR A ICOLLECTION OR IENUMERABLE PROPERTY OF YOUR ENTITY.

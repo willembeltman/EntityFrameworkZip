@@ -1,47 +1,4 @@
 ﻿
-using System;
-using System.Linq;
-using System.Collections.Generic;
-
-public static class CompanyEntityExtender
-{
-    public static void ExtendEntity(EntityFrameworkZip.Tests.Company item, EntityFrameworkZip.DbContext objDb)
-    {
-        var db = objDb as EntityFrameworkZip.Tests.MyDbContext;
-        if (db == null) throw new Exception("dbContext is not of type EntityFrameworkZip.Tests.MyDbContext");
-
-        if (item.Employees != null && item.Employees.GetType() != typeof(EntityFrameworkZip.Extended.LazyForeignEntityCollection<EntityFrameworkZip.Tests.Person, EntityFrameworkZip.Tests.Company>))
-        {
-            foreach (var subitem in item.Employees)
-            {
-                if (subitem.CompanyId != item.Id)
-                    subitem.CompanyId = item.Id;
-                if (subitem.Id < 1)
-                    db.People.Add(subitem);
-            }
-        }
-
-        item.Employees = new EntityFrameworkZip.Extended.LazyForeignEntityCollection<EntityFrameworkZip.Tests.Person, EntityFrameworkZip.Tests.Company>(
-            db.People,
-            item,
-            (foreign, primary) => foreign.CompanyId == primary.Id,
-            (foreign, primary) => foreign.CompanyId = primary.Id);
-        item.OwnerPerson = new EntityFrameworkZip.Lazy<EntityFrameworkZip.Tests.Person>(
-            db.People,
-            item,
-            (primary) => ((EntityFrameworkZip.Tests.Company)primary).OwnerId);
-        if (item.Finance != null)
-        {
-            var FinanceExtender = EntityFrameworkZip.Collections.EntityExtenderCollection.GetOrCreate<EntityFrameworkZip.Tests.CompanyFinance>(db);
-            FinanceExtender.ExtendEntity(item.Finance, db);
-        }
-    }
-}
-
-
-
-
-
 //using EntityFrameworkZip.Attributes;
 //using EntityFrameworkZip.Interfaces;
 

@@ -1,13 +1,13 @@
-﻿namespace EntityFrameworkZip;
+﻿namespace EntityFrameworkZip.ExtendedEntity;
 
-public class Lazy<T>
+public class LazyForeignEntity<T> : ILazy<T>
     where T : IEntity
 {
     private readonly DbSet<T> dbSet;
     private readonly object primary;
     private readonly Func<object, long> getCurrentForeignKey;
 
-    public Lazy(
+    public LazyForeignEntity(
         DbSet<T> dbSet,
         object primary,
         Func<object, long> getCurrentForeignKey)

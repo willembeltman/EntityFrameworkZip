@@ -23,7 +23,7 @@ public class Person : IEntity
     /// <summary>
     /// Lazily loaded reference to the company this person belongs to.
     /// </summary>
-    public virtual Lazy<Company> Company { get; set; }
+    public virtual ILazy<Company> Company { get; set; }
 }
 
 /// <summary>
@@ -48,7 +48,7 @@ public class Company : IEntity
     /// The <see cref="ForeignKeyAttribute"/> specifies that the foreign key is <see cref="OwnerId"/>.
     /// </summary>
     [ForeignKey("OwnerId")]
-    public virtual Lazy<Person> OwnerPerson { get; set; }
+    public virtual ILazy<Person> OwnerPerson { get; set; }
 
     /// <summary>
     /// A temporary list of to-do items. This property is not mapped to the database.
@@ -92,5 +92,5 @@ public class CompanyFinance
     /// This must be defined within the same class, as parent classes have no visibility into the sub-entity’s structure.
     /// </summary>
     [ForeignKey("HeadOfFinancePersonId")]
-    public virtual Lazy<Person> HeadOfFinancePerson { get; set; }
+    public virtual ILazy<Person> HeadOfFinancePerson { get; set; }
 }
