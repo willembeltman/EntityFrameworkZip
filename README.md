@@ -408,7 +408,8 @@ private Lazy<Person> Owner;
 private ILazy<Person> Owner;
 ```
 
-Sorry for the inconvenience
+Sorry for the inconvenience.
+
 We try to keep the interface stable, but this change was necessary to prevent subtle data bugs in apps that modify foreign key references at runtime.
 
 If you run into issues updating your code, feel free to open an issue — we're happy to help.
