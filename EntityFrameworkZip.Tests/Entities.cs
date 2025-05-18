@@ -1,5 +1,4 @@
-﻿using EntityFrameworkZip.Attributes;
-using EntityFrameworkZip.Interfaces;
+﻿using EntityFrameworkZip;
 
 #nullable disable
 

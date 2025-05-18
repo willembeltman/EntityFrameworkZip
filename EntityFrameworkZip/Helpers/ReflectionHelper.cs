@@ -31,20 +31,20 @@ namespace EntityFrameworkZip.Helpers
         {
             return
                 prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute>() != null ||
-                prop.GetCustomAttribute<Attributes.ForeignKeyAttribute>() != null;
+                prop.GetCustomAttribute<ForeignKeyAttribute>() != null;
         }
         public static bool HasNotMappedAttribute(PropertyInfo prop)
         {
             return
                 prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute>() != null ||
-                prop.GetCustomAttribute<Attributes.NotMappedAttribute>() != null;
+                prop.GetCustomAttribute<NotMappedAttribute>() != null;
         }
 
         // Haalt de naam op van de foreign key zoals aangegeven in het [ForeignKey("...")] attribuut
         public static string? GetForeignKeyAttributeName(PropertyInfo prop)
         {
             var attr1 = prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute>();
-            var attr2 = prop.GetCustomAttribute<Attributes.ForeignKeyAttribute>();
+            var attr2 = prop.GetCustomAttribute<ForeignKeyAttribute>();
             return attr1?.Name ?? attr2?.Name;
         }
 

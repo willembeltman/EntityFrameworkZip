@@ -1,4 +1,4 @@
-﻿namespace EntityFrameworkZip.Attributes;
+﻿namespace EntityFrameworkZip;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class ForeignKeyAttribute : System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute
