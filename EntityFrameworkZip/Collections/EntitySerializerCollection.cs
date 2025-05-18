@@ -2,11 +2,11 @@
 
 namespace EntityFrameworkZip.Collections;
 
-internal static class EntitySerializerCollection
+public static class EntitySerializerCollection
 {
     private static readonly Dictionary<EntityExtenderKey, object> EntitySerializers = [];
 
-    internal static EntitySerializer<T> GetOrCreate<T>(DbContext dbContext)
+    public static EntitySerializer<T> GetOrCreate<T>(DbContext dbContext)
     {
         var type = typeof(T);
         var applicationDbContextType = dbContext.GetType();

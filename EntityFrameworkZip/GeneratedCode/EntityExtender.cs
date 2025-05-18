@@ -4,7 +4,7 @@ using EntityFrameworkZip.Helpers;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-internal class EntityExtender<T> : CodeCompiler
+public class EntityExtender<T> : CodeCompiler
 {
     private readonly Action<T, DbContext> ExtendEntityDelegate;
     public readonly string Code;

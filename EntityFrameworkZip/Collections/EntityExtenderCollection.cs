@@ -2,11 +2,11 @@
 
 namespace EntityFrameworkZip.Collections;
 
-internal static class EntityExtenderCollection
+public static class EntityExtenderCollection
 {
     private static readonly Dictionary<EntityExtenderKey, object> EntityExtenders = [];
 
-    internal static EntityExtender<T> GetOrCreate<T>(DbContext dbContext)
+    public static EntityExtender<T> GetOrCreate<T>(DbContext dbContext)
     {
         var type = typeof(T);
         var applicationDbContextType = dbContext.GetType();

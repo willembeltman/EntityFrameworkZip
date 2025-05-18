@@ -3,7 +3,7 @@ using EntityFrameworkZip.Helpers;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-internal class EntitySerializer<T> : CodeCompiler
+public class EntitySerializer<T> : CodeCompiler
 {
     private readonly Action<BinaryWriter, T, DbContext> WriteDelegate;
     private readonly Func<BinaryReader, DbContext, T> ReadDelegate;
@@ -18,7 +18,7 @@ internal class EntitySerializer<T> : CodeCompiler
         return ReadDelegate(bw, dbContext);
     }
 
-    internal EntitySerializer(DbContext dbContext)
+    public EntitySerializer(DbContext dbContext)
     {
         var type = typeof(T);
         var className = $"{type.Name}EntitySerializer";

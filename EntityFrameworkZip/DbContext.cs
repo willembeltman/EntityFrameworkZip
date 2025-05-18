@@ -9,19 +9,16 @@ public class DbContext
     public DbContext(string fullName)
     {
         FullName = fullName;
+        DbSets = [];
 
-        // Hou de zip open, zodat hij gelocked is
         using var ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
         using var ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
-
-        DbSets = [];
 
         var extender = DbContextExtenderCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, ZipArchive);
     }
 
     public string FullName { get; }
-
 
     internal List<IDbSet> DbSets;
 
