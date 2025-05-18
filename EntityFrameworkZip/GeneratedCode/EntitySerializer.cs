@@ -198,6 +198,7 @@ public class EntitySerializer<T> : CodeCompiler
                 public static {fullClassName} {readMethodName}(BinaryReader reader, {dbContextTypeFullName} objDb)
                 {{
                     var db = objDb as {applicationDbContextTypeFullName};
+                    if (db == null) throw new Exception(""dbContext is not of type {applicationDbContextTypeFullName}"");
                     {readCode}
 
                     var item = new {fullClassName}

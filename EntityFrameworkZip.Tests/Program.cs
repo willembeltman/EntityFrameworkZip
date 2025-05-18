@@ -8,6 +8,7 @@ var db = new MyDbContext("test.zip");
 // Create Person entities.
 var alice = new Person { Name = "Alice" };
 var bob = new Person { Name = "Bob" };
+bob.TestEnum = TestEnum.Second;
 
 // Add persons to the context.
 db.People.Add(alice);
@@ -18,7 +19,6 @@ db.People.Add(bob);
 var testCompany = new Company { Name = "Test Company" };
 testCompany.Employees.Add(alice);
 testCompany.Employees.Add(bob);
-bob.TestEnum = TestEnum.Second;
 
 // Add the company to the context.
 // This will automatically link the previously added Person entities via the navigation property.
@@ -30,6 +30,16 @@ testCompany.OwnerId = alice.Id;
 
 // Verify that lazy loading of the OwnerPerson property works correctly.
 if (testCompany.OwnerPerson.Value.Name != "Alice")
+{
+    throw new Exception("Test failed: Owner is not Alice.");
+}
+
+// Set the owner relationship explicitly.
+// Note: OwnerId must be set manually; the OwnerPerson lazy reference will resolve after adding to the context.
+testCompany.OwnerId = bob.Id;
+
+// Verify that lazy loading of the OwnerPerson property works correctly.
+if (testCompany.OwnerPerson.Value.Name != "Bob")
 {
     throw new Exception("Test failed: Owner is not Alice.");
 }

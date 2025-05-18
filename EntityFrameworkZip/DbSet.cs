@@ -100,9 +100,34 @@ public class DbSet<T> : ICollection<T>, IDbSet
             Lock.ExitReadLock();
         }
     }
-    
 
+    public void Attach(T item)
+    {
+        if (item == null) throw new ArgumentNullException(nameof(item));
 
+        if (item.Id < 1)
+        {
+            Add(item);
+            return;
+        }
+
+        Lock.EnterWriteLock();
+        try
+        {
+            Cache[item.Id] = item;
+            EntityExtender.ExtendEntity(item, DbContext);
+            if (LastId < item.Id) LastId = item.Id;
+        }
+        finally
+        {
+            Lock.ExitWriteLock();
+        }
+    }
+    public void ExtendEntity(T item)
+    {
+        if (item == null) throw new ArgumentNullException(nameof(item));
+        EntityExtender.ExtendEntity(item, DbContext);
+    }
 
     #region ICollection
     public int Count

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
-using EntityFrameworkZip.Interfaces;
 
-namespace EntityFrameworkZip.Collections;
+namespace EntityFrameworkZip.Extended;
 
 /// <summary>
 /// PLEASE DO NOT USE THIS AS INITIALIZATION FOR A ICOLLECTION OR IENUMERABLE PROPERTY OF YOUR ENTITY.
@@ -12,15 +11,27 @@ namespace EntityFrameworkZip.Collections;
 /// it WILL try to add the items inside of the collection to the database because it assumes the items
 /// should be new. Adding the items will cause the id's to be set.
 /// </summary>
-public class LazyForeignEntityCollection<TForeign, TPrimary>(
-    DbSet<TForeign> dbSet,
-    TPrimary primary,
-    Func<TForeign, TPrimary, bool> whereForeignKeyEqualToPrimaryKeyFunction,
-    Action<TForeign, TPrimary> setForeignKeyToPrimaryKeyFunction) 
-    : ICollection<TForeign>
+public class LazyForeignEntityCollection<TForeign, TPrimary> : ICollection<TForeign>
     where TForeign : IEntity
     where TPrimary : IEntity
 {
+    private readonly DbSet<TForeign> dbSet;
+    private readonly TPrimary primary;
+    private readonly Func<TForeign, TPrimary, bool> whereForeignKeyEqualToPrimaryKeyFunction;
+    private readonly Action<TForeign, TPrimary> setForeignKeyToPrimaryKeyFunction;
+
+    public LazyForeignEntityCollection(
+        DbSet<TForeign> dbSet,
+        TPrimary primary,
+        Func<TForeign, TPrimary, bool> whereForeignKeyEqualToPrimaryKeyFunction,
+        Action<TForeign, TPrimary> setForeignKeyToPrimaryKeyFunction)
+    {
+        this.dbSet = dbSet;
+        this.primary = primary;
+        this.whereForeignKeyEqualToPrimaryKeyFunction = whereForeignKeyEqualToPrimaryKeyFunction;
+        this.setForeignKeyToPrimaryKeyFunction = setForeignKeyToPrimaryKeyFunction;
+    }
+
     public int Count => dbSet.Count(a => whereForeignKeyEqualToPrimaryKeyFunction(a, primary));
     public bool IsReadOnly => false;
 
