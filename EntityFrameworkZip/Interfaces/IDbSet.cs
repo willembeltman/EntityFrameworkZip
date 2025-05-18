@@ -2,7 +2,7 @@
 
 namespace EntityFrameworkZip.Interfaces;
 
-internal interface IDbSet
+public interface IDbSet
 {
     string TypeName { get; }
 

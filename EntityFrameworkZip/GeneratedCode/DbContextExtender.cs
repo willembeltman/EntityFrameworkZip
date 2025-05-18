@@ -13,7 +13,7 @@ public class DbContextExtender : CodeCompiler
         ExtendDbContextDelegate(dbContext, zipArchive);
     }
 
-    internal DbContextExtender(DbContext dbContext)
+    public DbContextExtender(DbContext dbContext)
     {
         var applicationDbContextType = dbContext.GetType(); 
         var extenderName = $"{applicationDbContextType.Name}DbContextExtender";

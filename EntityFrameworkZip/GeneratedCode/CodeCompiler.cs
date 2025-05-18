@@ -6,7 +6,7 @@ namespace EntityFrameworkZip.GeneratedCode;
 
 public class CodeCompiler
 {
-    internal static Assembly Compile(string code)
+    public static Assembly Compile(string code)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(code);
         var refs = AppDomain.CurrentDomain.GetAssemblies()

@@ -22,7 +22,7 @@ public class DbContext
 
     internal List<IDbSet> DbSets;
 
-    internal void AddDbSet(IDbSet dbSet)
+    public void AddDbSet(IDbSet dbSet)
     {
         DbSets.Add(dbSet);
     }

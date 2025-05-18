@@ -1,4 +1,4 @@
-﻿using EntityFrameworkZip;
+﻿namespace EntityFrameworkZip.Tests;
 
 #nullable disable
 
