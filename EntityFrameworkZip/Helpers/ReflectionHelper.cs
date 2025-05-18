@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Concurrent;
 using System.Reflection;
 using EntityFrameworkZip.Interfaces;
 
@@ -8,8 +7,8 @@ namespace EntityFrameworkZip.Helpers
     public static class ReflectionHelper
     {
 
-        private static readonly HashSet<Type> PrimitiveTypes = new()
-        {
+        private static readonly HashSet<Type> PrimitiveTypes =
+        [
             typeof(bool),
             typeof(byte),
             typeof(sbyte),
@@ -25,18 +24,18 @@ namespace EntityFrameworkZip.Helpers
             typeof(ulong),
             typeof(string),
             typeof(DateTime),
-        };
+        ];
 
         // Controleert of de eigenschap een foreign key attribuut heeft
         public static bool HasForeignKeyAttribute(PropertyInfo prop)
         {
-            return 
+            return
                 prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.ForeignKeyAttribute>() != null ||
                 prop.GetCustomAttribute<Attributes.ForeignKeyAttribute>() != null;
         }
         public static bool HasNotMappedAttribute(PropertyInfo prop)
         {
-            return 
+            return
                 prop.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute>() != null ||
                 prop.GetCustomAttribute<Attributes.NotMappedAttribute>() != null;
         }
@@ -50,17 +49,23 @@ namespace EntityFrameworkZip.Helpers
         }
 
         // Controleert of de eigenschap een ICollection<T> is (gebruikelijk voor navigatiecollecties)
-        public static bool IsICollection(PropertyInfo prop)
+        private static bool IsICollection(PropertyInfo prop)
         {
             var type = prop.PropertyType;
             return type.IsGenericType &&
                    type.GetGenericTypeDefinition() == typeof(ICollection<>);
         }
-        public static bool IsIEnumerable(PropertyInfo prop)
+        private static bool IsIEnumerable(PropertyInfo prop)
         {
             var type = prop.PropertyType;
             return type.IsGenericType &&
                    type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+        }
+        private static bool IsLazy(PropertyInfo prop)
+        {
+            var type = prop.PropertyType;
+            return type.IsGenericType &&
+                   type.GetGenericTypeDefinition() == typeof(Lazy<>);
         }
 
         // Controleert of de property publiek toegankelijk is (ten minste met een getter)
@@ -74,12 +79,6 @@ namespace EntityFrameworkZip.Helpers
         public static bool HasPublicSetter(PropertyInfo prop)
         {
             return prop.GetSetMethod(false) != null;
-        }
-        public static bool IsLazy(PropertyInfo prop)
-        {
-            var type = prop.PropertyType;
-            return type.IsGenericType &&
-                   type.GetGenericTypeDefinition() == typeof(Lazy<>);
         }
 
 
@@ -125,9 +124,9 @@ namespace EntityFrameworkZip.Helpers
             return typeDef == typeof(DbSet<>);
         }
 
-        public static bool HasExtendedProperties(Type type, HashSet<Type>? visitedTypes = null)
+        public static bool HasExtendedForeignProperties(Type type, HashSet<Type>? visitedTypes = null)
         {
-            visitedTypes ??= new HashSet<Type>();
+            visitedTypes ??= [];
             if (visitedTypes.Contains(type))
                 return true; // Avoid cycles
 
@@ -138,56 +137,26 @@ namespace EntityFrameworkZip.Helpers
                 if (!ReflectionHelper.HasPublicGetter(prop)) continue;
                 if (!ReflectionHelper.HasPublicSetter(prop)) continue;
 
-                if (ReflectionHelper.IsExtendedProperty(prop)) return true;
+                if (ReflectionHelper.IsExtendedForeignEntityProperty(prop)) return true;
+                if (ReflectionHelper.IsExtendedForeignListProperty(prop)) return true;
             }
 
             return false;
         }
-        public static bool HasExtendedLists(Type type, HashSet<Type>? visitedTypes = null)
+
+        public static bool IsExtendedForeignProperty(PropertyInfo prop)
         {
-            visitedTypes ??= new HashSet<Type>();
-            if (visitedTypes.Contains(type))
-                return true; // Avoid cycles
-
-            visitedTypes.Add(type);
-
-            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-            {
-                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
-                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-
-                if (ReflectionHelper.IsExtendedList(prop)) return true;
-            }
-
-            return false;
-        }
-        public static bool HasExtendedPropertiesOrLists(Type type, HashSet<Type>? visitedTypes = null)
-        {
-            visitedTypes ??= new HashSet<Type>();
-            if (visitedTypes.Contains(type))
-                return true; // Avoid cycles
-
-            visitedTypes.Add(type);
-
-            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-            {
-                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
-                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-
-                if (ReflectionHelper.IsExtendedProperty(prop)) return true;
-                if (ReflectionHelper.IsExtendedList(prop)) return true;
-            }
-
-            return false;
+            return IsExtendedForeignListProperty(prop) || IsExtendedForeignEntityProperty(prop);
         }
 
-        public static bool IsExtendedProperty(PropertyInfo prop)
+        public static bool IsExtendedForeignEntityProperty(PropertyInfo prop)
         {
             return
                 ReflectionHelper.IsVirtual(prop) &&
                 (ReflectionHelper.IsLazy(prop) || ReflectionHelper.IsIEnumerable(prop) || ReflectionHelper.IsICollection(prop));
         }
-        public static bool IsExtendedList(PropertyInfo prop)
+
+        public static bool IsExtendedForeignListProperty(PropertyInfo prop)
         {
             return
                 ReflectionHelper.IsVirtual(prop) &&
@@ -196,7 +165,7 @@ namespace EntityFrameworkZip.Helpers
 
         public static bool IsValidChildEntity(Type type, HashSet<Type>? visitedTypes = null)
         {
-            visitedTypes ??= new HashSet<Type>();
+            visitedTypes ??= [];
             if (visitedTypes.Contains(type))
                 return true; // Avoid cycles
             visitedTypes.Add(type);
@@ -209,8 +178,8 @@ namespace EntityFrameworkZip.Helpers
                 var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
 
                 if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
-                if (ReflectionHelper.IsExtendedProperty(prop)) continue;
-                if (ReflectionHelper.IsExtendedList(prop)) continue;
+                if (ReflectionHelper.IsExtendedForeignEntityProperty(prop)) continue;
+                if (ReflectionHelper.IsExtendedForeignListProperty(prop)) continue;
 
                 if (ReflectionHelper.IsPrimitiveTypeOrEnum(propType)) continue;
 
@@ -240,7 +209,7 @@ namespace EntityFrameworkZip.Helpers
 
         public static bool HasAnyProperties(Type propType)
         {
-            return propType.GetProperties().Any();
+            return propType.GetProperties().Length != 0;
         }
 
         public static bool HasIEnumerableInterface(Type propType)

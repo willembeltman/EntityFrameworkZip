@@ -1,15 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
-using EntityFrameworkZip.Collections;
+﻿using EntityFrameworkZip.Collections;
 using EntityFrameworkZip.Helpers;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-public class EntitySerializer<T>
+internal class EntitySerializer<T> : CodeCompiler
 {
-    private Action<BinaryWriter, T, DbContext> WriteDelegate;
-    private Func<BinaryReader, DbContext, T> ReadDelegate;
+    private readonly Action<BinaryWriter, T, DbContext> WriteDelegate;
+    private readonly Func<BinaryReader, DbContext, T> ReadDelegate;
     public readonly string Code;
 
     public void Write(BinaryWriter bw, T item, DbContext dbContext)
@@ -42,9 +39,8 @@ public class EntitySerializer<T>
             typeof(Action<BinaryWriter, T, DbContext>), writeMethod)!;
     }
 
-    private string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName, DbContext dbContext)
+    private static string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName, DbContext dbContext)
     {
-        var className = type.Name;
         var fullClassName = type.FullName;
 
         var writeCode = string.Empty;
@@ -54,8 +50,8 @@ public class EntitySerializer<T>
         var dbContextType = typeof(DbContext);
         var dbContextTypeFullName = dbContextType.FullName;
 
-        var binarySerializerType = typeof(EntitySerializer<>);
-        var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
+        //var binarySerializerType = typeof(EntitySerializer<>);
+        //var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
 
         var entitySerializerCollectionType = typeof(EntitySerializerCollection);
         var entitySerializerCollectionTypeFullName = entitySerializerCollectionType.FullName;
@@ -73,16 +69,8 @@ public class EntitySerializer<T>
             var propertyName = prop.Name;
 
             if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
-            if (ReflectionHelper.IsExtendedProperty(prop)) continue;
-            if (ReflectionHelper.IsExtendedList(prop)) continue;
-
-            // Wat kan er allemaal?
-            //
-            // Primitive types
-            // DateTime
-            // ExtendedProperties en ExtendedLists, mits alle keys gevonden kunnen worden en de dbset's bestaan
-            // Non-generic Structs en classes (die zelfde types ondersteunen)
-            // Enums
+            if (ReflectionHelper.IsExtendedForeignEntityProperty(prop)) continue;
+            if (ReflectionHelper.IsExtendedForeignListProperty(prop)) continue;
 
             if (ReflectionHelper.IsPrimitiveTypeOrEnum(prop.PropertyType))
             {
@@ -92,7 +80,6 @@ public class EntitySerializer<T>
                 if (ReflectionHelper.IsNulleble(prop))
                 {
                     writeCode += @$"
-
                         if (value.{propertyName} == null)
                             writer.Write(true);
                         else
@@ -102,7 +89,6 @@ public class EntitySerializer<T>
                         }}";
 
                     readCode += @$"
-
                         {prop.PropertyType.FullName} {propertyName} = null;
                         if (!reader.ReadBoolean())
                         {{
@@ -248,32 +234,5 @@ public class EntitySerializer<T>
         if (type == typeof(string)) return "reader.ReadString()";
         if (type == typeof(DateTime)) return "DateTime.FromBinary(reader.ReadInt64())";
         throw new Exception($"Type {type.Name} not supported while its added to the ReflectionHelper.IsPrimitiveType list.");
-    }
-
-    private Assembly Compile(string code)
-    {
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
-        var refs = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .Cast<MetadataReference>();
-
-        var compilation = CSharpCompilation.Create(
-            "GeneratedEntitySerializers",
-            new[] { syntaxTree },
-            refs,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
-
-        using var ms = new MemoryStream();
-        var result = compilation.Emit(ms);
-        if (!result.Success)
-        {
-            var errors = string.Join("\n", result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
-            throw new Exception($"Compile error:\n{errors}");
-        }
-
-        ms.Seek(0, SeekOrigin.Begin);
-        return Assembly.Load(ms.ToArray());
     }
 }

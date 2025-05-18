@@ -1,8 +1,8 @@
 ﻿namespace EntityFrameworkZip.Collections;
 
-public struct EntitySerializerKey
+internal struct EntitySerializerKey
 {
-    public EntitySerializerKey(Type type, Type applicationDbContextType) : this()
+    internal EntitySerializerKey(Type type, Type applicationDbContextType) : this()
     {
         Type = type;
         ApplicationDbContextType = applicationDbContextType;

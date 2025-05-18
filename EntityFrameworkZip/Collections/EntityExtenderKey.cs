@@ -1,8 +1,8 @@
 ﻿namespace EntityFrameworkZip.Collections;
 
-public struct EntityExtenderKey
+internal struct EntityExtenderKey
 {
-    public EntityExtenderKey(Type type, Type applicationDbContextType) : this()
+    internal EntityExtenderKey(Type type, Type applicationDbContextType) : this()
     {
         Type = type;
         ApplicationDbContextType = applicationDbContextType;

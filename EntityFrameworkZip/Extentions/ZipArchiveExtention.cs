@@ -2,9 +2,9 @@
 
 namespace EntityFrameworkZip.Extentions;
 
-internal static class ZipArchiveExtention
+public static class ZipArchiveExtention
 {
-    internal static ZipArchiveEntry GetOrCreateEntry(this ZipArchive zipArchive, string name)
+    public static ZipArchiveEntry GetOrCreateEntry(this ZipArchive zipArchive, string name)
     {
         var dataEntry = zipArchive.GetEntry(name);
         if (dataEntry == null)

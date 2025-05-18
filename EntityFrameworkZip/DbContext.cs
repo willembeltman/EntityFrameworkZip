@@ -14,7 +14,7 @@ public class DbContext
         using var ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
         using var ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
 
-        DbSets = new List<IDbSet>();
+        DbSets = [];
 
         var extender = DbContextExtenderCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, ZipArchive);

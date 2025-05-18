@@ -2,23 +2,22 @@
 
 namespace EntityFrameworkZip.Collections;
 
-public static class DbContextExtenderCollection
+internal static class DbContextExtenderCollection
 {
-    private static readonly Dictionary<Type, object> DbContextExtenders = new();
+    private static readonly Dictionary<Type, object> DbContextExtenders = [];
 
-    public static DbContextExtender GetOrCreate(DbContext dbContext)
+    internal static DbContextExtender GetOrCreate(DbContext dbContext)
     {
         var type = dbContext.GetType();
-        var serializer = DbContextExtenders.ContainsKey(type) ? DbContextExtenders[type] : null;
-        if (serializer == null)
+        if (DbContextExtenders.TryGetValue(type, out var extender))
         {
-            var newSerializer = new DbContextExtender(dbContext);
-            DbContextExtenders[type] = newSerializer;
-            return newSerializer;
+            return (DbContextExtender)extender;
         }
         else
         {
-            return (DbContextExtender)serializer;
+            var newExtender = new DbContextExtender(dbContext);
+            DbContextExtenders[type] = newExtender;
+            return newExtender;
         }
     }
 }

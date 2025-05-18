@@ -1,17 +1,14 @@
-﻿using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-using EntityFrameworkZip.Helpers;
+﻿using EntityFrameworkZip.Helpers;
 using System.IO.Compression;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-public class DbContextExtender
+internal class DbContextExtender : CodeCompiler
 {
-    private Action<DbContext, ZipArchive> ExtendDbContextDelegate;
+    private readonly Action<DbContext, ZipArchive> ExtendDbContextDelegate;
     public readonly string Code;
 
-    public void ExtendDbContext(DbContext dbContext, System.IO.Compression.ZipArchive zipArchive)
+    public void ExtendDbContext(DbContext dbContext, ZipArchive zipArchive)
     {
         ExtendDbContextDelegate(dbContext, zipArchive);
     }
@@ -22,7 +19,7 @@ public class DbContextExtender
         var extenderName = $"{applicationDbContextType.Name}DbContextExtender";
         var extenderMethodName = "ExtendDbContext";
 
-        Code = GenerateSerializerCode(applicationDbContextType, extenderName, extenderMethodName, dbContext);
+        Code = GenerateSerializerCode(applicationDbContextType, extenderName, extenderMethodName);
 
         var asm = Compile(Code);
         var serializerType = asm.GetType(extenderName)!;
@@ -32,7 +29,7 @@ public class DbContextExtender
             typeof(Action<DbContext, ZipArchive>), createProxyMethod)!;
     }
 
-    private string GenerateSerializerCode(Type applicationDbContextType, string extenderName, string extenderMethodName, DbContext dbContext)
+    private static string GenerateSerializerCode(Type applicationDbContextType, string extenderName, string extenderMethodName)
     {
         var applicationDbContextName = applicationDbContextType.Name;
         var applicationDbContextFullName = applicationDbContextType.FullName;
@@ -59,46 +56,20 @@ public class DbContextExtender
             var propertyTypeFullName = propertyType.FullName;
 
             propertiesCode += $@"
-        db.{propertyName} = new {dbSetFullName}<{propertyTypeFullName}>(db, zipArchive);";
+                    db.{propertyName} = new {dbSetFullName}<{propertyTypeFullName}>(db, zipArchive);";
         }
 
         return $@"
-using System;
+            using System;
 
-public static class {extenderName}
-{{
-    public static void {extenderMethodName}({dbContextTypeFullName} dbContext, System.IO.Compression.ZipArchive zipArchive)
-    {{
-        var db = dbContext as {applicationDbContextFullName};
-        if (db == null) throw new Exception(""dbContext is not of type {applicationDbContextName}"");{propertiesCode}
-    }}
-}}";
-    }
-    
-    private Assembly Compile(string code)
-    {
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
-        var refs = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .Cast<MetadataReference>();
-
-        var compilation = CSharpCompilation.Create(
-            "GeneratedDbContextExtenders",
-            new[] { syntaxTree },
-            refs,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
-
-        using var ms = new MemoryStream();
-        var result = compilation.Emit(ms);
-        if (!result.Success)
-        {
-            var errors = string.Join("\n", result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
-            throw new Exception($"Compile error:\n{errors}");
-        }
-
-        ms.Seek(0, SeekOrigin.Begin);
-        return Assembly.Load(ms.ToArray());
+            public static class {extenderName}
+            {{
+                public static void {extenderMethodName}({dbContextTypeFullName} dbContext, System.IO.Compression.ZipArchive zipArchive)
+                {{
+                    var db = dbContext as {applicationDbContextFullName};
+                    if (db == null) throw new Exception(""dbContext is not of type {applicationDbContextName}"");
+                    {propertiesCode}
+                }}
+            }}";
     }
 }

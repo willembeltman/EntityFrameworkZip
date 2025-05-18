@@ -1,14 +1,12 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
 using EntityFrameworkZip.Collections;
 using EntityFrameworkZip.Helpers;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-public class EntityExtender<T>
+internal class EntityExtender<T> : CodeCompiler
 {
-    private Action<T, DbContext> ExtendEntityDelegate;
+    private readonly Action<T, DbContext> ExtendEntityDelegate;
     public readonly string Code;
 
     public void ExtendEntity(T entity, DbContext dbContext)
@@ -32,7 +30,7 @@ public class EntityExtender<T>
             typeof(Action<T, DbContext>), createProxyMethod)!;
     }
 
-    private string GenerateSerializerCode(Type type, string proxyName, string methodName, DbContext dbContext)
+    private static string GenerateSerializerCode(Type type, string proxyName, string methodName, DbContext dbContext)
     {
         var className = type.Name;
         var fullClassName = type.FullName;
@@ -61,18 +59,16 @@ public class EntityExtender<T>
             var propertyName = prop.Name;
             if (!ReflectionHelper.HasPublicGetter(prop)) continue;
             if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-            if (ReflectionHelper.HasExtendedPropertiesOrLists(prop.PropertyType))
+            if (ReflectionHelper.HasExtendedForeignProperties(prop.PropertyType))
             {
                 lazyCode += $@"
                     var {propertyName}Extender = {entityExtenderCollectionTypeFullName}.{entityExtenderCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
                     {propertyName}Extender.ExtendEntity(item.{propertyName}, db);";
                 continue;
             }
-            var test1 = ReflectionHelper.IsExtendedProperty(prop);
-            var test2 = ReflectionHelper.IsExtendedList(prop);
-            if (!(test1 || test2)) continue;
+            if (!ReflectionHelper.IsExtendedForeignProperty(prop)) continue;
 
-            if (ReflectionHelper.HasIEnumerableInterface(prop.PropertyType))
+            if (ReflectionHelper.IsExtendedForeignListProperty(prop))
             {
                 var foreignType = ReflectionHelper.GetIEnumerableType(prop);
                 var foreignKeyName = $"{className}Id";
@@ -87,11 +83,9 @@ public class EntityExtender<T>
 
                 var foreignPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
                     .Where(a => ReflectionHelper.IsDbSet(a))
-                    .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType);
-
-                if (foreignPropertyOnApplicationDbContext == null) 
-                    throw new Exception($"ZipDatabase Exception: DbSet<{foreignType.Name}> not found on {applicationDbContextType.Name}.");
-
+                    .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType) 
+                    ?? throw new Exception($"ZipDatabase Exception: DbSet<{foreignType.Name}> not found on {applicationDbContextType.Name}.");
+                
                 if (!ReflectionHelper.HasIEntityInterface(type))
                     throw new Exception(
                         $"ZipDatabase Exception: Type '{type.FullName}' does not implement IEntity interface, though is used to filter in the " +
@@ -119,7 +113,7 @@ public class EntityExtender<T>
                         (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
                         (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
             }
-            else if (ReflectionHelper.IsLazy(prop))
+            else if (ReflectionHelper.IsExtendedForeignEntityProperty(prop))
             {
                 var foreignType = ReflectionHelper.GetLazyType(prop);
                 var foreignKeyName = $"{propertyName}Id";
@@ -145,7 +139,7 @@ public class EntityExtender<T>
                             var subitem = db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName});
                             if (subitem == null) return null;
                             return subitem;
-                        }});";
+                        }}, true);";
             }
         }
 
@@ -162,51 +156,5 @@ public class EntityExtender<T>
                     {lazyCode}
                 }}
             }}";
-    }
-
-    public static string? GetCSharpTypeName(Type type)
-    {
-        if (type == typeof(int)) return "int";
-        if (type == typeof(long)) return "long";
-        if (type == typeof(short)) return "short";
-        if (type == typeof(byte)) return "byte";
-        if (type == typeof(bool)) return "bool";
-        if (type == typeof(char)) return "char";
-        if (type == typeof(string)) return "string";
-        if (type == typeof(object)) return "object";
-        if (type == typeof(float)) return "float";
-        if (type == typeof(double)) return "double";
-        if (type == typeof(decimal)) return "decimal";
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            return GetCSharpTypeName(Nullable.GetUnderlyingType(type)!) + "?";
-
-        return type.FullName; // fallback, e.g. for classes
-    }
-
-    private Assembly Compile(string code)
-    {
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
-        var refs = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
-            .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .Cast<MetadataReference>();
-
-        var compilation = CSharpCompilation.Create(
-            "GeneratedEntityExtenders",
-            new[] { syntaxTree },
-            refs,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
-
-        using var ms = new MemoryStream();
-        var result = compilation.Emit(ms);
-        if (!result.Success)
-        {
-            var errors = string.Join("\n", result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
-            throw new Exception($"Compile error:\n{errors}");
-        }
-
-        ms.Seek(0, SeekOrigin.Begin);
-        return Assembly.Load(ms.ToArray());
     }
 }

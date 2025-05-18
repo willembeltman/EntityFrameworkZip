@@ -2,25 +2,24 @@
 
 namespace EntityFrameworkZip.Collections;
 
-public static class EntitySerializerCollection
+internal static class EntitySerializerCollection
 {
-    private static readonly Dictionary<Type, object> EntitySerializers = new();
+    private static readonly Dictionary<EntityExtenderKey, object> EntitySerializers = [];
 
-    public static EntitySerializer<T> GetOrCreate<T>(DbContext dbContext)
+    internal static EntitySerializer<T> GetOrCreate<T>(DbContext dbContext)
     {
         var type = typeof(T);
         var applicationDbContextType = dbContext.GetType();
         var search = new EntityExtenderKey(type, applicationDbContextType);
-        var serializer = EntitySerializers.ContainsKey(type) ? EntitySerializers[type] : null;
-        if (serializer == null)
+        if (EntitySerializers.TryGetValue(search, out var serializer))
         {
-            var newSerializer = new EntitySerializer<T>(dbContext);
-            EntitySerializers[type] = newSerializer;
-            return newSerializer;
+            return (EntitySerializer<T>)serializer;
         }
         else
         {
-            return (EntitySerializer<T>)serializer;
+            var newSerializer = new EntitySerializer<T>(dbContext);
+            EntitySerializers[search] = newSerializer;
+            return newSerializer;
         }
     }
 }
