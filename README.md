@@ -432,7 +432,7 @@ Feel free to open an issue or contribute via pull request!
 ## 📝 Todo List
 
 - [X] Implement Attach functionality. (Done in 1.0.8)
-s
+
 - [ ] Improve support for virtual ICollection<> and IEnumerable<>:
 Ensure the insert function updates existing items already in the database, or define a clear behavior for such cases.
 
