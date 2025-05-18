@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Reflection;
-using EntityFrameworkZip.Interfaces;
 
 namespace EntityFrameworkZip.Helpers
 {

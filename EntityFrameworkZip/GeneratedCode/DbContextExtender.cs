@@ -3,7 +3,7 @@ using System.IO.Compression;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-internal class DbContextExtender : CodeCompiler
+public class DbContextExtender : CodeCompiler
 {
     private readonly Action<DbContext, ZipArchive> ExtendDbContextDelegate;
     public readonly string Code;
