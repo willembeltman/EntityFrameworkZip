@@ -69,6 +69,13 @@ public class EntitySerializer<T> : CodeCompiler
             var propertyName = prop.Name;
 
             if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
+            if (ReflectionHelper.IsOldExtendedForeignEntityProperty(prop))
+                throw new Exception(
+                    "As of version 1.0.8, we’ve moved from Lazy<T> to ILazy<T> to fix a subtle bug with foreign keys not updating.\n" +
+                    "Sorry for the breaking change — you'll need to update your entity properties.\n" +
+                    "Read more at: https://github.com/willembeltman/EntityFrameworkZip"
+                ); 
+
             if (ReflectionHelper.IsExtendedForeignEntityProperty(prop)) continue;
             if (ReflectionHelper.IsExtendedForeignListProperty(prop)) continue;
 
