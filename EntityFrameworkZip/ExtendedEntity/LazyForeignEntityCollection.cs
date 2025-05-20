@@ -77,7 +77,9 @@ public class LazyForeignEntityCollection<TForeign, TPrimary> : ICollection<TFore
     public bool Remove(TForeign item)
     {
         if (!dbSet.Any(a => getForeignKey(a) == primary.Id && a.Id == item.Id)) return false;
-        return dbSet.Remove(item);
+        setForeignKey(item, 0);
+        return true;
+        //return dbSet.Remove(item);
     }
 
     /// <summary>

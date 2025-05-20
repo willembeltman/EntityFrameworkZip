@@ -475,6 +475,10 @@ Still evaluating whether switching to a proxy-based system is worth the added co
 
 ## 📝 Changelog
 
+### v1.0.10
+- Changed ICollection.Remove behavior: now only unsets the foreign key (sets it to 0) instead of removing the entire referenced entity from the DbSet<TForeign>.
+- Defined consistent behavior for adding or updating records when assigning related entities to new entities.
+
 ### v1.0.9
 - Added full XML documentation for all public classes and members.
 - Replaced LINQ `Where` clause foreign key lookups with dictionary-based resolution for improved performance.

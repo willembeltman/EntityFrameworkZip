@@ -111,8 +111,7 @@ public class EntityExtender<T> : CodeCompiler
                         {{
                             if (subitem.{foreignKeyName} != item.Id)
                                 subitem.{foreignKeyName} = item.Id;
-                            if (subitem.Id < 1)
-                                db.{foreignPropertyOnApplicationDbContextName}.Add(subitem);
+                            db.{foreignPropertyOnApplicationDbContextName}.Attach(subitem);
                         }}
                     }}
                     if (item.{propertyName} == null ||
@@ -151,8 +150,7 @@ public class EntityExtender<T> : CodeCompiler
                         item.{propertyName}.Value != null)
                     {{
                         var subitem = item.{propertyName}.Value;
-                        if (subitem.Id < 1)
-                            db.{lazyPropertyOnApplicationDbContextName}.Add(subitem);
+                        db.{lazyPropertyOnApplicationDbContextName}.Attach(subitem);
                         if (item.{foreignKeyName} != subitem.Id)
                             item.{foreignKeyName} = subitem.Id;
                     }}
