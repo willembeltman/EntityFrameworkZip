@@ -429,12 +429,12 @@ Simply update your properties or fields:
 
 // Before:
 ```csharp
-private Lazy<Person> Owner;
+public Lazy<Person> Owner;
 ```
 
 // After:
 ```csharp
-private ILazy<Person> Owner;
+public ILazy<Person> Owner;
 ```
 
 Sorry for the inconvenience.
