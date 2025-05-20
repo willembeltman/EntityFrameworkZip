@@ -3,21 +3,48 @@ using EntityFrameworkZip.Helpers;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
+/// <summary>
+/// Dynamisch gegenereerde serializer voor een entity van type <typeparamref name="T"/>.
+/// Maakt het mogelijk om entities snel te serialiseren en deserialiseren naar binaire data,
+/// met gebruik van een DbContext voor eventuele gerelateerde entiteiten.
+/// </summary>
+/// <typeparam name="T">Het type entity dat geserialiseerd wordt.</typeparam>
 public class EntitySerializer<T> : CodeCompiler
 {
     private readonly Action<BinaryWriter, T, DbContext> WriteDelegate;
     private readonly Func<BinaryReader, DbContext, T> ReadDelegate;
+
+    /// <summary>
+    /// De gegenereerde broncode van de serializer klasse als string.
+    /// </summary>
     public readonly string Code;
 
+    /// <summary>
+    /// Serialiseert een instantie van <typeparamref name="T"/> naar een binaire stream.
+    /// </summary>
+    /// <param name="bw">De BinaryWriter om de data naar te schrijven.</param>
+    /// <param name="item">De entity instantie die geserialiseerd wordt.</param>
+    /// <param name="dbContext">De DbContext die kan worden gebruikt tijdens het schrijven.</param>
     public void Write(BinaryWriter bw, T item, DbContext dbContext)
     {
         WriteDelegate(bw, item, dbContext);
     }
+    /// <summary>
+    /// Deserialiseert een instantie van <typeparamref name="T"/> vanuit een binaire stream.
+    /// </summary>
+    /// <param name="br">De BinaryReader om de data uit te lezen.</param>
+    /// <param name="dbContext">De DbContext die kan worden gebruikt tijdens het lezen.</param>
+    /// <returns>Een nieuw object van type <typeparamref name="T"/> die is opgebouwd uit de binaire data.</returns>
     public T Read(BinaryReader bw, DbContext dbContext)
     {
         return ReadDelegate(bw, dbContext);
     }
 
+    /// <summary>
+    /// Initialiseert een nieuwe instantie van de <see cref="EntitySerializer{T}"/> klasse,
+    /// genereert en compileert serializer code voor het type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="dbContext">De DbContext die wordt gebruikt bij serialisatie en deserialisatie.</param>
     public EntitySerializer(DbContext dbContext)
     {
         var type = typeof(T);

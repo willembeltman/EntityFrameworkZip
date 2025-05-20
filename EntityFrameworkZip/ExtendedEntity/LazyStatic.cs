@@ -1,0 +1,21 @@
+﻿namespace EntityFrameworkZip;
+
+/// <summary>
+/// Represents a simple lazy container that holds a static entity value.
+/// </summary>
+/// <typeparam name="T">The type of the entity.</typeparam>
+public class LazyStatic<T> : ILazy<T?>
+    where T : IEntity
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LazyStatic{T}"/> class 
+    /// </summary>
+    public LazyStatic()
+    {
+    }
+
+    /// <summary>
+    /// Gets or sets the static entity value.
+    /// </summary>
+    public T? Value { get; set; }
+}

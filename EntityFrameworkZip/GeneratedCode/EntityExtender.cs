@@ -42,7 +42,7 @@ public class EntityExtender<T> : CodeCompiler
         var foreignEntityCollectionType = typeof(LazyForeignEntityCollection<,>);
         var foreignEntityCollectionFullName = foreignEntityCollectionType.FullName!.Split('`').First();
 
-        var foreignEntityLazyType = typeof(LazyForeignEntity<>);
+        var foreignEntityLazyType = typeof(LazyForeignEntity<,>);
         var foreignEntityLazyFullName = foreignEntityLazyType.FullName!.Split('`').First();
 
         var entitySerializerType = typeof(EntitySerializer<>);
@@ -104,7 +104,8 @@ public class EntityExtender<T> : CodeCompiler
                 var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; 
 
                 lazyCode += $@"
-                    if (item.{propertyName} != null && item.{propertyName}.GetType() != typeof({foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>))
+                    if (item.{propertyName} != null &&
+                        item.{propertyName}.GetType() != typeof({foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>))
                     {{
                         foreach(var subitem in item.{propertyName})
                         {{
@@ -114,15 +115,18 @@ public class EntityExtender<T> : CodeCompiler
                                 db.{foreignPropertyOnApplicationDbContextName}.Add(subitem);
                         }}
                     }}
-
-                    item.{propertyName} = new {foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>(
-                        db.{foreignPropertyOnApplicationDbContextName},
-                        item,
-                        (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
-                        (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
+                    if (item.{propertyName} == null ||
+                        item.{propertyName}.GetType() != typeof({foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>))
+                    {{
+                        item.{propertyName} = new {foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>(
+                            db.{foreignPropertyOnApplicationDbContextName},
+                            item,
+                            (foreign) => foreign.{foreignKeyName},
+                            (foreign, value) => {{ foreign.{foreignKeyName} = value; }});
+                    }}";
             }
             else if (ReflectionHelper.IsExtendedForeignEntityProperty(prop))
-            {
+            { 
                 var foreignType = ReflectionHelper.GetILazyType(prop);
                 var foreignKeyName = $"{propertyName}Id";
                 if (ReflectionHelper.HasForeignKeyAttribute(prop))
@@ -141,18 +145,27 @@ public class EntityExtender<T> : CodeCompiler
 
                 var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name;
 
-                //lazyCode += @$"
-                //    item.{propertyName} = new Lazy<{foreignType.FullName}?>(() => 
-                //        {{
-                //            var subitem = db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName});
-                //            return subitem;
-                //        }}, true);";
-
                 lazyCode += @$"
-                    item.{propertyName} = new {foreignEntityLazyFullName}<{foreignType.FullName}>(
-                        db.{lazyPropertyOnApplicationDbContextName},
-                        item,
-                        (primary) => (({fullClassName})primary).{foreignKeyName});";
+                    if (item.{propertyName} != null && 
+                        item.{propertyName}.GetType() != typeof({foreignEntityLazyFullName}<{foreignType.FullName}, {fullClassName}>) &&
+                        item.{propertyName}.Value != null)
+                    {{
+                        var subitem = item.{propertyName}.Value;
+                        if (subitem.Id < 1)
+                            db.{lazyPropertyOnApplicationDbContextName}.Add(subitem);
+                        if (item.{foreignKeyName} != subitem.Id)
+                            item.{foreignKeyName} = subitem.Id;
+                    }}
+
+                    if (item.{propertyName} == null ||
+                        item.{propertyName}.GetType() != typeof({foreignEntityLazyFullName}<{foreignType.FullName}, {fullClassName}>))
+                    {{
+                        item.{propertyName} = new {foreignEntityLazyFullName}<{foreignType.FullName}, {fullClassName}>(
+                            db.{lazyPropertyOnApplicationDbContextName},
+                            item,
+                            (foreign) => foreign.{foreignKeyName},
+                            (foreign, value) => {{ foreign.{foreignKeyName} = value; }});
+                    }}";
             }
         }
 

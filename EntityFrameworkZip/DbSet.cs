@@ -1,25 +1,52 @@
-﻿using System.Collections;
-using System.IO.Compression;
-using EntityFrameworkZip.Interfaces;
-using EntityFrameworkZip.Extentions;
+﻿using System.IO.Compression;
 using EntityFrameworkZip.GeneratedCode;
 using EntityFrameworkZip.Collections;
 
 namespace EntityFrameworkZip;
 
-public class DbSet<T> : ICollection<T>, IDbSet
+/// <summary>
+/// Represents an in-memory table (DbSet) for entities of type <typeparamref name="T"/>.
+/// Supports loading/saving from/to ZIP archives or directories, and manages entity identity.
+/// </summary>
+/// <typeparam name="T">The entity type. Must implement <see cref="IEntity"/>.</typeparam>
+public partial class DbSet<T>
     where T : IEntity
 {
-    private readonly ReaderWriterLockSlim Lock;
-    private readonly Dictionary<long, T> Cache;
-    private readonly EntitySerializer<T> EntitySerializer;
-    private readonly EntityExtender<T> EntityExtender;
-    private long LastId;
+    /// <summary>
+    /// Provides thread-safe read/write access to the internal cache.
+    /// </summary>
+    public ReaderWriterLockSlim Lock { get; }
 
+    /// <summary>
+    /// The in-memory dictionary storing entities by their ID.
+    /// </summary>
+    public Dictionary<long, T> Cache { get; }
+
+    /// <summary>
+    /// Handles serialization and deserialization of this entity type.
+    /// </summary>
+    public EntitySerializer<T> EntitySerializer { get; }
+
+    /// <summary>
+    /// Responsible for extending the entity with navigation properties.
+    /// </summary>
+    public EntityExtender<T> EntityExtender { get; }
+
+    /// <summary>
+    /// The parent <see cref="DbContext"/> this set belongs to.
+    /// </summary>
     public DbContext DbContext { get; }
-    public string TypeName { get; }
 
-    public DbSet(DbContext dbContext, ZipArchive zipArchive)
+    /// <summary>
+    /// The last used ID for this DbSet. Used to generate unique keys.
+    /// </summary>
+    public long LastId { get; private set; }
+
+    /// <summary>
+    /// Internal constructor used by all public ones. Registers the DbSet with the context,
+    /// and initializes serializers, extenders, cache, and locking.
+    /// </summary>
+    private DbSet(DbContext dbContext)
     {
         DbContext = dbContext;
         DbContext.AddDbSet(this);
@@ -29,236 +56,26 @@ public class DbSet<T> : ICollection<T>, IDbSet
         Cache = new Dictionary<long, T>();
         EntitySerializer = EntitySerializerCollection.GetOrCreate<T>(dbContext);
         EntityExtender = EntityExtenderCollection.GetOrCreate<T>(dbContext);
+    }
 
+    /// <summary>
+    /// Loads the set from a ZIP archive.
+    /// </summary>
+    /// <param name="dbContext">The context to associate with.</param>
+    /// <param name="zipArchive">The archive to read from.</param>
+    public DbSet(DbContext dbContext, ZipArchive zipArchive) : this(dbContext)
+    {
         LoadCache(zipArchive);
     }
 
-    public void LoadCache(ZipArchive zipArchive)
+    /// <summary>
+    /// Loads the set from a directory.
+    /// </summary>
+    /// <param name="dbContext">The context to associate with.</param>
+    /// <param name="directory">The directory to read from.</param>
+    public DbSet(DbContext dbContext, DirectoryInfo directory) : this(dbContext)
     {
-        Lock.EnterWriteLock();
-        try
-        {
-            var idFile = zipArchive.GetOrCreateEntry($"{TypeName}.id");
-            using var idStream = idFile!.Open();
-            using var idReader = new BinaryReader(idStream);
-
-            var indexFile = zipArchive.GetOrCreateEntry($"{TypeName}.index");
-            using var indexStream = indexFile!.Open();
-            using var indexReader = new BinaryReader(indexStream);
-
-            var dataFile = zipArchive.GetOrCreateEntry($"{TypeName}.data");
-            using var dataStream = dataFile!.Open();
-            using var dataReader = new BinaryReader(dataStream);
-
-            if (idStream.Position < idStream.Length)
-                LastId = idReader.ReadInt64();
-
-            while (indexStream!.Position < indexStream.Length)
-            {
-                var indexPosition = indexStream.Position;
-                var dataPosition = indexReader!.ReadInt64();
-                if (dataPosition >= 0)
-                {
-                    dataStream.Position = dataPosition;
-                    var item = EntitySerializer.Read(dataReader!, DbContext);
-                    //EntityExtender.ExtendEntity(item, DbContext);
-                    Cache[item.Id] = item;
-                }
-            }
-        }
-        finally
-        {
-            Lock.ExitWriteLock();
-        }
-    }
-    public void WriteCache(ZipArchive zipArchive)
-    {
-        Lock.EnterReadLock();
-        try
-        {
-            var idFile = zipArchive.GetOrCreateEntry($"{TypeName}.id");
-            using var idStream = idFile!.Open();
-            using var idWriter = new BinaryWriter(idStream);
-
-            var indexFile = zipArchive.GetOrCreateEntry($"{TypeName}.index");
-            using var indexStream = indexFile!.Open();
-            using var indexWriter = new BinaryWriter(indexStream);
-
-            var dataFile = zipArchive.GetOrCreateEntry($"{TypeName}.data");
-            using var dataStream = dataFile!.Open();
-            using var dataWriter = new BinaryWriter(dataStream);
-
-            idWriter.Write(LastId);
-            foreach (var item in Cache.Values)
-            {
-                indexWriter.Write(dataStream.Position);
-                EntitySerializer.Write(dataWriter, item, DbContext);
-            }
-        }
-        finally
-        {
-            Lock.ExitReadLock();
-        }
+        LoadCache(directory);
     }
 
-    public void Attach(T item)
-    {
-        if (item == null) throw new ArgumentNullException(nameof(item));
-
-        if (item.Id < 1)
-        {
-            Add(item);
-            return;
-        }
-
-        Lock.EnterWriteLock();
-        try
-        {
-            Cache[item.Id] = item;
-            EntityExtender.ExtendEntity(item, DbContext);
-            if (LastId < item.Id) LastId = item.Id;
-        }
-        finally
-        {
-            Lock.ExitWriteLock();
-        }
-    }
-    public void ExtendEntity(T item)
-    {
-        if (item == null) throw new ArgumentNullException(nameof(item));
-        EntityExtender.ExtendEntity(item, DbContext);
-    }
-
-    #region ICollection
-    public int Count
-    {
-        get
-        {
-            Lock.EnterReadLock();
-            try { return Cache.Count; }
-            finally { Lock.ExitReadLock(); }
-        }
-    }
-    public bool IsReadOnly => false;
-
-    public void Add(T item)
-    {
-        if (item == null) throw new ArgumentNullException(nameof(item));
-        if (Contains(item)) throw new ArgumentException("Item already exists in the collection");
-
-        Lock.EnterWriteLock();
-        try
-        {
-            item.Id = ++LastId;
-            Cache[item.Id] = item;
-            EntityExtender.ExtendEntity(item, DbContext);
-        }
-        finally
-        {
-            Lock.ExitWriteLock();
-        }
-    }
-    public bool Remove(T item)
-    {
-        if (item == null) throw new ArgumentNullException(nameof(item));
-
-        Lock.EnterWriteLock();
-        try
-        {
-            if (!Cache.TryGetValue(item.Id, out var entry)) return false;
-            Cache.Remove(item.Id);
-            return true;
-        }
-        finally
-        {
-            Lock.ExitWriteLock();
-        }
-    }
-    public int RemoveRange(IEnumerable<T> enumerable)
-    {
-        int count = 0;
-
-        Lock.EnterWriteLock();
-        try
-        {
-            foreach (var item in enumerable)
-            {
-                if (item == null) throw new ArgumentNullException(nameof(item));
-                if (!Cache.TryGetValue(item.Id, out var entry))
-                {
-                    continue;
-                }
-                Cache.Remove(item.Id);
-                count++;
-            }
-        }
-        finally
-        {
-            Lock.ExitWriteLock();
-        }
-
-        return count;
-    }
-    public void Clear()
-    {
-        Lock.EnterWriteLock();
-        try
-        {
-            Cache.Clear();
-        }
-        finally
-        {
-            Lock.ExitWriteLock();
-        }
-    }
-    public bool Contains(T item)
-    {
-        if (item == null) return false;
-
-        Lock.EnterReadLock();
-        try
-        {
-            return Cache.ContainsKey(item.Id);
-        }
-        finally
-        {
-            Lock.ExitReadLock();
-        }
-    }
-    public void CopyTo(T[] array, int arrayIndex)
-    {
-        Lock.EnterReadLock();
-        try
-        {
-            foreach (var item in Cache.Values)
-            {
-                //EntityExtender.ExtendEntity(item, DbContext);
-                if (arrayIndex >= array.Length) throw new ArgumentException("Target array too small");
-                array[arrayIndex++] = item;
-            }
-        }
-        finally
-        {
-            Lock.ExitReadLock();
-        }
-    }
-    public IEnumerator<T> GetEnumerator()
-    {
-        Lock.EnterReadLock();
-        try
-        {
-            foreach (var item in Cache.Values)
-            {
-                EntityExtender.ExtendEntity(item, DbContext);
-                yield return item;
-            }
-        }
-        finally
-        {
-            Lock.ExitReadLock();
-        }
-    }
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    #endregion
 }

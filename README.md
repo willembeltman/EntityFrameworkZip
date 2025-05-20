@@ -116,229 +116,258 @@ db.SaveChanges();
 
 ```csharp
 
-using EntityFrameworkZip;
-
 #nullable disable
 
-public enum TestEnum
+/// <summary>
+/// Represents the rank of a <see cref="Person"/>.
+/// </summary>
+public enum RankEnum
 {
     First,
-    Second,
-    Third
+    Second
 }
 
 /// <summary>
 /// Represents a person entity that implements <see cref="IEntity"/>.
-/// Contains a lazy-loaded reference to a related <see cref="Company"/>.
 /// </summary>
 public class Person : IEntity
 {
+    /// <summary>
+    /// Gets or sets the unique identifier for the person.
+    /// </summary>
     public long Id { get; set; }
-    public long CompanyId { get; set; }
-    public string Name { get; set; }
-    public TestEnum TestEnum { get; set; } 
 
     /// <summary>
-    /// Lazily loaded reference to the company this person belongs to.
+    /// Gets or sets the foreign key to the associated <see cref="Company"/>.
+    /// </summary>
+    public long CompanyId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the person.
+    /// </summary>
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets the rank of the person.
+    /// </summary>
+    public RankEnum Rank { get; set; }
+
+    /// <summary>
+    /// Gets or sets the lazily loaded reference to the person's company.
+    /// Not initialized by default, meaning it will be null until assigned.
     /// </summary>
     public virtual ILazy<Company> Company { get; set; }
 }
 
-
 /// <summary>
 /// Represents a company entity that implements <see cref="IEntity"/>.
-/// Contains a collection of employees, a lazy-loaded owner reference, and a nested sub-entity for financial data.
 /// </summary>
 public class Company : IEntity
 {
+    /// <summary>
+    /// Gets or sets the unique identifier for the company.
+    /// </summary>
     public long Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the foreign key to the owner of the company.
+    /// </summary>
     public long OwnerId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the company.
+    /// </summary>
     public string Name { get; set; }
 
     /// <summary>
-    /// A collection of employees (type <see cref="Person"/>).
-    /// Initialized by default, allowing employees to be added before the company is added to the context.
-    /// Once the company is added to the context, all employees in this list will also be added.
+    /// Gets or sets the collection of employees associated with the company.
+    /// Initialized by default to allow pre-context population.
     /// </summary>
     public virtual ICollection<Person> Employees { get; set; } = new List<Person>();
 
     /// <summary>
-    /// Lazily loaded reference to the owner of the company.
-    /// The <see cref="ForeignKeyAttribute"/> specifies that the foreign key is <see cref="OwnerId"/>.
+    /// Gets or sets the lazily loaded reference to the company's owner.
+    /// Initialized using <see cref="LazyStatic{T}"/> for a <see cref="Person"/>.
+    /// So you can override the value to reuse an existing person before context insertion.
     /// </summary>
     [ForeignKey("OwnerId")]
-    public virtual ILazy<Person> OwnerPerson { get; set; }
+    public virtual ILazy<Person> OwnerPerson { get; set; } = new LazyStatic<Person>();
 
     /// <summary>
-    /// A temporary list of to-do items. This property is not mapped to the database.
-    /// Any type is supported here, as long as it's marked with <see cref="NotMappedAttribute"/>.
+    /// Gets or sets a list of temporary to-do items.
+    /// This property is ignored by the serializer/database engine due to the <see cref="NotMappedAttribute"/>.
     /// </summary>
     [NotMapped]
     public List<string> TemporaryTodoItems { get; set; } = new List<string>();
 
     /// <summary>
-    /// A nested sub-entity holding financial information for the company.
-    /// Sub-entities follow the same rules as regular entities and can contain:
-    /// - Primitive types
-    /// - <see cref="DateTime"/> values
-    /// - Enums
-    /// - Lazy-loaded navigation properties
-    /// - Collections (e.g., <see cref="ICollection{T}"/>)
-    /// - Other sub-entities
+    /// Gets or sets the nested financial sub-entity for the company.
+    /// Supports nesting of primitive values, lazy references, and collections.
     /// </summary>
     public CompanyFinance Finance { get; set; } = new CompanyFinance();
 }
 
 /// <summary>
-/// Represents financial data associated with a <see cref="Company"/>.
-/// Demonstrates support for nested sub-entities, foreign keys, and computed properties.
+/// Represents a nested sub-entity containing financial information for a <see cref="Company"/>.
 /// </summary>
 public class CompanyFinance
 {
+    /// <summary>
+    /// Gets or sets the total revenue.
+    /// </summary>
     public decimal Revenue { get; set; }
+
+    /// <summary>
+    /// Gets or sets the total expenses.
+    /// </summary>
     public decimal Expenses { get; set; }
 
     /// <summary>
-    /// Computed profit based on revenue and expenses.
-    /// Read-only properties are automatically ignored by the ORM and do not require [NotMapped].
+    /// Gets the calculated profit, based on revenue minus expenses.
+    /// This is a computed property and is not persisted to the database.
     /// </summary>
     public decimal Profit => Revenue - Expenses;
 
+    /// <summary>
+    /// Gets or sets the foreign key to the head of finance.
+    /// </summary>
     public long HeadOfFinancePersonId { get; set; }
 
     /// <summary>
-    /// Lazily loaded reference to the head of finance.
-    /// The <see cref="ForeignKeyAttribute"/> is used to map to <see cref="HeadOfFinancePersonId"/>.
-    /// This must be defined within the same class, as parent classes have no visibility into the sub-entity’s structure.
+    /// Gets or sets the lazily loaded reference to the head of finance.
+    /// Initialized by default with a <see cref="LazyStatic{T}"/> without a value (i.e., null).
+    /// The foreign key <see cref="HeadOfFinancePersonId"/> must reside in the same class.
     /// </summary>
     [ForeignKey("HeadOfFinancePersonId")]
-    public virtual ILazy<Person> HeadOfFinancePerson { get; set; }
+    public virtual ILazy<Person> HeadOfFinancePerson { get; set; } = new LazyStatic<Person>();
 }
 
 /// <summary>
-/// Represents the application's database context, inheriting from EntityFrameworkZip's in-memory Zip-based <see cref="DbContext"/>.
-/// Unlike traditional EF contexts, this context operates entirely in memory and does not require <c>SaveChanges()</c>
-/// for entity tracking or persistence during normal operation.
-///
-/// Data is only written to disk when <c>SaveChanges()</c> is explicitly called, which recreates the entire Zip file.
-/// This approach works well for small datasets or scenarios where data is saved or loaded occasionally.
-/// For large datasets with frequent writes, a different storage model may be more appropriate.
+/// Represents the application's in-memory database context.
+/// Uses a Zip-based persistence strategy via <see cref="EntityFrameworkZip.DbContext"/>.
 /// </summary>
 public class MyDbContext : DbContext
 {
     /// <summary>
-    /// Constructs a new instance of the database context using the specified file path or name.
-    /// This value is used to determine where the Zip file will be stored or loaded from.
+    /// Initializes a new instance of the <see cref="MyDbContext"/> using the given path or filename.
     /// </summary>
-    /// <param name="fullName">The full path or unique identifier for the Zip storage file.</param>
+    /// <param name="fullName">The full file path or identifier for the underlying Zip file.</param>
     public MyDbContext(string fullName) : base(fullName) { }
 
     /// <summary>
-    /// Gets or sets the collection of companies in the database.
-    /// No manual initialization is required—handled internally by the engine.
+    /// Initializes a new instance of the <see cref="MyDbContext"/> using a directory.
+    /// </summary>
+    /// <param name="directory">The directory containing the Zip file used for persistence.</param>
+    public MyDbContext(DirectoryInfo directory) : base(directory) { }
+
+    /// <summary>
+    /// Gets or sets the collection of companies in the context.
+    /// Automatically initialized by the framework; manual setup is not required.
     /// </summary>
     public virtual DbSet<Company> Companies { get; set; }
 
     /// <summary>
-    /// Gets or sets the collection of people in the database.
-    /// No manual initialization is required—handled internally by the engine.
+    /// Gets or sets the collection of people in the context.
+    /// Automatically initialized by the framework; manual setup is not required.
     /// </summary>
     public virtual DbSet<Person> People { get; set; }
 }
 
+// Example test application demonstrating usage of the EntityFrameworkZip in-memory database.
+// Verifies lazy loading, entity relationships, nested entity behavior, and persistence.
 #nullable enable
 
 // Create or load the database from a .zip file.
 // All operations are performed in-memory; the zip file is only used when SaveChanges() is called.
-var db = new MyDbContext("test.zip");
+var db = new MyDbContext(new DirectoryInfo("test")); // => Using a directory instead of zip for speed.
 
-// Create Person entities.
-var alice = new Person { Name = "Alice" };
-var bob = new Person { Name = "Bob" };
-bob.TestEnum = TestEnum.Second;
+// Create Person entities representing employees or owners.
+var alice = new Person { Name = "Alice", Rank = RankEnum.First };
+var bob = new Person { Name = "Bob", Rank = RankEnum.Second };
 
-// Add persons to the context.
-db.People.Add(alice);
-db.People.Add(bob);
-
-// Create a Company and assign employees *before* adding the company to the context.
-// Because the Employees list is initialized in the Company class, we can safely add employees here.
+// Create a Company and assign employees before adding it to the context.
+// Since Employees is initialized by default, we can safely add people before persistence.
 var testCompany = new Company { Name = "Test Company" };
+testCompany.OwnerPerson.Value = alice;
 testCompany.Employees.Add(alice);
 testCompany.Employees.Add(bob);
 
-// Add the company to the context.
-// This will automatically link the previously added Person entities via the navigation property.
+// Add the company to the context. This operation also registers all related employees.
 db.Companies.Add(testCompany);
 
-// Set the owner relationship explicitly.
-// Note: OwnerId must be set manually; the OwnerPerson lazy reference will resolve after adding to the context.
-testCompany.OwnerId = alice.Id;
-
-// Verify that lazy loading of the OwnerPerson property works correctly.
+// Verify initial lazy loading of the OwnerPerson property.
 if (testCompany.OwnerPerson.Value.Name != "Alice")
 {
     throw new Exception("Test failed: Owner is not Alice.");
 }
 
-// Set the owner relationship explicitly.
-// Note: OwnerId must be set manually; the OwnerPerson lazy reference will resolve after adding to the context.
-testCompany.OwnerId = bob.Id;
-
-// Verify that lazy loading of the OwnerPerson property works correctly.
+// Change the owner to Bob and verify the lazy-loaded relationship updates correctly.
+testCompany.OwnerPerson.Value = bob;
 if (testCompany.OwnerPerson.Value.Name != "Bob")
 {
-    throw new Exception("Test failed: Owner is not Alice.");
+    throw new Exception("Test failed: Owner is not Bob.");
 }
 
-// Query example: select all people whose name starts with "A".
+// Perform a LINQ query to find all employees whose name starts with 'A'.
+// Ensures filtering and foreign key resolution works.
 var all = db.People.Where(p => p.CompanyId == testCompany.Id && p.Name.StartsWith('A')).ToList();
 if (all.Count != 1)
 {
     throw new Exception("Test failed: Expected 1 person, got " + all.Count);
 }
 
-// Work with the extended CompanyFinance object.
+// Set financial data and validate computed values.
 testCompany.Finance.Revenue = 1000;
 testCompany.Finance.Expenses = 500;
-testCompany.Finance.HeadOfFinancePersonId = bob.Id;
 
-// Verify calculated property.
+// Verify calculated Profit property reflects the correct value.
 if (testCompany.Finance.Profit != 500)
 {
     throw new Exception("Test failed: Profit is not 500.");
 }
 
-// Verify that lazy loading works inside nested objects.
+// Set HeadOfFinance to bob by id
+testCompany.Finance.HeadOfFinancePersonId = bob.Id;
+
+// Verify lazy loading inside nested sub-entities (Finance).
 if (testCompany.Finance.HeadOfFinancePerson.Value.Name != "Bob")
 {
     throw new Exception("Test failed: Head of Finance is not Bob.");
 }
 
-// Verify recursive object resolution via lazy navigation properties.
+// Verify recursive resolution of lazy navigation properties.
+// Ensures nested references back to parent entities are correctly resolved.
 if (testCompany.Finance.HeadOfFinancePerson.Value.Company.Value.Employees.Count != 2)
 {
     throw new Exception("Test failed: Recursive navigation failed.");
 }
 
-// Verify recursive read lock
+// Verify recursive relationship lookup through lazy references.
+// Ensures consistency in navigation and lazy loading.
 if (!testCompany.Employees.Any(a => a.Company.Value.Employees.Any(b => b.Id == a.Id)))
 {
     throw new Exception("Test failed: Recursive read lock failed.");
 }
 
-// Persist all changes to disk by saving the entire database to a .zip file.
+// Persist all changes by saving the in-memory state to a .zip file.
 db.SaveChanges();
 
-var db2 = new MyDbContext("test.zip");
+// Reload the database from the saved .zip file to verify persistence.
+var db2 = new MyDbContext(new DirectoryInfo("test"));
 var company2 = db2.Companies.Last();
 var bob2 = company2.Employees.First(a => a.Name == "Bob");
-if (bob2.TestEnum != TestEnum.Second)
+
+// Verify deserialized entity properties, including enums and lazy relationships.
+if (bob2.Rank != RankEnum.Second)
 {
-    throw new Exception("Test failed: Bob's TestEnum is not Second.");
+    throw new Exception("Test failed: Bob's RankEnum is not Second.");
+}
+if (company2.OwnerPerson.Value.Name != "Bob")
+{
+    throw new Exception("Test failed: Owner is not Bob after reload.");
 }
 
-````
+```
 
 ---
 
