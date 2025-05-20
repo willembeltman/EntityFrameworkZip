@@ -7,27 +7,27 @@ namespace EntityFrameworkZip.ExtendedEntity;
 /// </summary>
 /// <typeparam name="TForeign">The type of the foreign entity.</typeparam>
 /// <typeparam name="TPrimary">The type of the primary entity.</typeparam>
-public class LazyForeignEntityCollection<TForeign, TPrimary> : ICollection<TForeign>
+public class LazyForeignEntityCollectionNull<TForeign, TPrimary> : ICollection<TForeign>
     where TForeign : IEntity
     where TPrimary : IEntity
 {
     private readonly DbSet<TForeign> dbSet;
     private readonly TPrimary primary;
-    private readonly Func<TForeign, long> getForeignKey;
-    private readonly Action<TForeign, long> setForeignKey;
+    private readonly Func<TForeign, long?> getForeignKey;
+    private readonly Action<TForeign, long?> setForeignKey;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LazyForeignEntityCollection{TForeign, TPrimary}"/> class.
+    /// Initializes a new instance of the <see cref="LazyForeignEntityCollectionNotNull{TForeign, TPrimary}"/> class.
     /// </summary>
     /// <param name="dbSet">The DbSet containing the foreign entities.</param>
     /// <param name="primary">The primary entity to which the foreign entities belong.</param>
     /// <param name="getForeignKey">Function to get the foreign key value from a foreign entity.</param>
     /// <param name="setForeignKey">Action to set the foreign key value on a foreign entity.</param>
-    public LazyForeignEntityCollection(
+    public LazyForeignEntityCollectionNull(
         DbSet<TForeign> dbSet,
         TPrimary primary,
-        Func<TForeign, long> getForeignKey,
-        Action<TForeign, long> setForeignKey)
+        Func<TForeign, long?> getForeignKey,
+        Action<TForeign, long?> setForeignKey)
     {
         this.dbSet = dbSet;
         this.primary = primary;

@@ -92,3 +92,10 @@ if (company2.OwnerPerson.Value.Name != "Bob")
 {
     throw new Exception("Test failed: Owner is not Bob after reload.");
 }
+
+db2.People.Remove(bob2, true);
+
+if (company2.OwnerPerson.Value != null)
+{
+    throw new Exception("Test failed: Owner is not null after reload.");
+}

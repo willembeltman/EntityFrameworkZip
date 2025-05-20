@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using EntityFrameworkZip.Collections;
+using EntityFrameworkZip.GeneratedCode;
+using System.Collections;
 
 namespace EntityFrameworkZip;
 
@@ -22,7 +24,7 @@ public partial class DbSet<T> : ICollection<T>
     /// Always returns false, since items can be added or removed.
     /// </summary>
     public bool IsReadOnly => false;
-    
+
     /// <summary>
     /// Adds a new entity to the collection. 
     /// Automatically assigns a new ID and extends the entity with the current DbContext.
@@ -79,7 +81,7 @@ public partial class DbSet<T> : ICollection<T>
             Lock.ExitWriteLock();
         }
     }
-    
+
     /// <summary>
     /// Retrieves an entity based on its primary key ID.
     /// Returns the corresponding entity if it exists, or <c>null</c> if the ID is not found in the cache.
@@ -99,7 +101,7 @@ public partial class DbSet<T> : ICollection<T>
             Lock.ExitReadLock();
         }
     }
-    
+
     /// <summary>
     /// Checks whether an entity with the specified primary key ID exists in the cache.
     /// Thread-safe via a read lock.
@@ -128,6 +130,33 @@ public partial class DbSet<T> : ICollection<T>
     public bool Remove(T item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
+        var foreignKeyUsageFinder = ForeignKeyUsageFinderCollection.GetOrCreate<T>(DbContext);
+        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext)) throw new Exception("Foreign key found");
+
+        Lock.EnterWriteLock();
+        try
+        {
+            if (!Cache.TryGetValue(item.Id, out var entry)) return false;
+            Cache.Remove(item.Id);
+            return true;
+        }
+        finally
+        {
+            Lock.ExitWriteLock();
+        }
+    }
+
+    /// <summary>
+    /// Removes the specified entity from the collection if it exists.
+    /// </summary>
+    /// <param name="item">The entity to remove.</param>
+    /// <returns>True if the entity was found and removed; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the item is null.</exception>
+    public bool Remove(T item, bool removeDependencies)
+    {
+        if (item == null) throw new ArgumentNullException(nameof(item));
+        var foreignKeyUsageFinder = ForeignKeyUsageFinderCollection.GetOrCreate<T>(DbContext);
+        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext, removeDependencies) && !removeDependencies) throw new Exception("Foreign key found");
 
         Lock.EnterWriteLock();
         try

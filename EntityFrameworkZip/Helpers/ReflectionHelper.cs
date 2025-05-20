@@ -91,6 +91,10 @@ namespace EntityFrameworkZip.Helpers
         {
             return prop.PropertyType.GenericTypeArguments[0];
         }
+        public static Type GetDbSetType(Type dbSetType)
+        {
+            return dbSetType.GenericTypeArguments[0];
+        }
         public static Type GetIEnumerableType(PropertyInfo prop)
         {
             return prop.PropertyType.GenericTypeArguments[0];
@@ -158,7 +162,7 @@ namespace EntityFrameworkZip.Helpers
         {
             return
                 ReflectionHelper.IsVirtual(prop) &&
-                (ReflectionHelper.IsILazy(prop) || ReflectionHelper.IsIEnumerable(prop) || ReflectionHelper.IsICollection(prop));
+                (ReflectionHelper.IsILazy(prop));
         }
 
         public static bool IsOldExtendedForeignEntityProperty(PropertyInfo prop)
@@ -244,6 +248,11 @@ namespace EntityFrameworkZip.Helpers
 
             return type.GetInterfaces()
                 .Any(i => i == typeof(IEntity));
+        }
+
+        public static Type GetUnderlyingPropertyType(Type type)
+        {
+            return Nullable.GetUnderlyingType(type) ?? type;
         }
     }
 

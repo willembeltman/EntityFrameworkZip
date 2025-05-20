@@ -24,7 +24,7 @@ public class Person : IEntity
     /// <summary>
     /// Gets or sets the foreign key to the associated <see cref="Company"/>.
     /// </summary>
-    public long CompanyId { get; set; }
+    public long? CompanyId { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the person.
@@ -34,7 +34,7 @@ public class Person : IEntity
     /// <summary>
     /// Gets or sets the rank of the person.
     /// </summary>
-    public RankEnum Rank { get; set; }
+    public RankEnum? Rank { get; set; }
 
     /// <summary>
     /// Gets or sets the lazily loaded reference to the person's company.
@@ -56,7 +56,7 @@ public class Company : IEntity
     /// <summary>
     /// Gets or sets the foreign key to the owner of the company.
     /// </summary>
-    public long OwnerId { get; set; }
+    public long? OwnerId { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the company.
@@ -99,18 +99,18 @@ public class CompanyFinance
     /// <summary>
     /// Gets or sets the total revenue.
     /// </summary>
-    public decimal Revenue { get; set; }
+    public decimal? Revenue { get; set; }
 
     /// <summary>
     /// Gets or sets the total expenses.
     /// </summary>
-    public decimal Expenses { get; set; }
+    public decimal? Expenses { get; set; }
 
     /// <summary>
     /// Gets the calculated profit, based on revenue minus expenses.
     /// This is a computed property and is not persisted to the database.
     /// </summary>
-    public decimal Profit => Revenue - Expenses;
+    public decimal? Profit => Revenue - Expenses;
 
     /// <summary>
     /// Gets or sets the foreign key to the head of finance.

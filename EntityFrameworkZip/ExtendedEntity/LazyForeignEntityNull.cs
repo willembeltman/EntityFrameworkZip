@@ -5,26 +5,26 @@
 /// </summary>
 /// <typeparam name="TPrimary">The type of the primary entity that is being referenced.</typeparam>
 /// <typeparam name="TForeign">The type of the foreign entity holding the foreign key.</typeparam>
-public class LazyForeignEntity<TPrimary, TForeign> : ILazy<TPrimary?>
+public class LazyForeignEntityNull<TPrimary, TForeign> : ILazy<TPrimary?>
     where TPrimary : IEntity
 {
     private readonly DbSet<TPrimary> dbSet;
     private readonly TForeign foreign;
-    private readonly Func<TForeign, long> getForeignKey;
-    private readonly Action<TForeign, long> setForeignKey;
+    private readonly Func<TForeign, long?> getForeignKey;
+    private readonly Action<TForeign, long?> setForeignKey;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LazyForeignEntity{TPrimary, TForeign}"/> class.
+    /// Initializes a new instance of the <see cref="LazyForeignEntityNull{TPrimary, TForeign}"/> class.
     /// </summary>
     /// <param name="dbSet">The DbSet to query for the primary entity.</param>
     /// <param name="foreign">The foreign entity instance containing the foreign key.</param>
     /// <param name="getForeignKey">Function to get the foreign key value from the foreign entity.</param>
     /// <param name="setForeignKey">Action to set the foreign key value on the foreign entity.</param>
-    public LazyForeignEntity(
+    public LazyForeignEntityNull(
         DbSet<TPrimary> dbSet,
         TForeign foreign,
-        Func<TForeign, long> getForeignKey,
-        Action<TForeign, long> setForeignKey)
+        Func<TForeign, long?> getForeignKey,
+        Action<TForeign, long?> setForeignKey)
     {
         this.dbSet = dbSet;
         this.foreign = foreign;
@@ -43,12 +43,13 @@ public class LazyForeignEntity<TPrimary, TForeign> : ILazy<TPrimary?>
         get
         {
             var currentForeignKey = getForeignKey(foreign);
-            if (!dbSet.ContainsKey(currentForeignKey)) return default;
-            return dbSet.FindByKey(currentForeignKey);
+            if (currentForeignKey == null) return default;
+            if (!dbSet.ContainsKey(currentForeignKey.Value)) return default;
+            return dbSet.FindByKey(currentForeignKey.Value);
         }
         set
         {
-            setForeignKey(foreign, value?.Id ?? 0);
+            setForeignKey(foreign, value?.Id);
         }
     }
 }

@@ -462,11 +462,13 @@ Feel free to open an issue or contribute via pull request!
 
 - [X] Implement Attach functionality. (Done in 1.0.8)
 
-- [ ] Improve support for virtual ICollection<> and IEnumerable<>:
+- [X] Improve support for virtual ICollection<> and IEnumerable<>:
 Ensure the insert function updates existing items already in the database, or define a clear behavior for such cases.
+(Done in 1.0.10)
 
-- [ ] Investigate using entity proxies via Castle.DynamicProxy:
+- [X] Investigate using entity proxies via Castle.DynamicProxy:
 Still evaluating whether switching to a proxy-based system is worth the added complexity.
+Conclusion: not going to do it.
 
 - [ ] Add recursive removing of child entities, or at least a exception if we detect foreign keys.
 
@@ -476,8 +478,11 @@ Still evaluating whether switching to a proxy-based system is worth the added co
 ## 📝 Changelog
 
 ### v1.0.10
-- Changed ICollection.Remove behavior: now only unsets the foreign key (sets it to 0) instead of removing the entire referenced entity from the DbSet<TForeign>.
-- Defined consistent behavior for adding or updating records when assigning related entities to new entities.
+- Changed `ICollection.Remove` behavior: now only unsets the foreign key (sets it to 0 or null) instead of removing the referenced entity from the `DbSet<TForeign>`.
+- Defined consistent behavior for assigning related entities to new entities (ensures proper add/update semantics).
+- Added support for nullable properties (I didn't realize we didn't support this — oeps, bug).
+- Added support for nullable foreign keys (`long?`), which now default to `null` instead of `0`.
+- Updated test program to test nullable fields.
 
 ### v1.0.9
 - Added full XML documentation for all public classes and members.

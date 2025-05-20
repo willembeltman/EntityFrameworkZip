@@ -93,8 +93,6 @@ public class EntitySerializer<T> : CodeCompiler
             if (!ReflectionHelper.HasPublicGetter(prop)) continue;
             if (!ReflectionHelper.HasPublicSetter(prop)) continue;
 
-            var propertyName = prop.Name;
-
             if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
             if (ReflectionHelper.IsOldExtendedForeignEntityProperty(prop))
                 throw new Exception(
@@ -106,13 +104,16 @@ public class EntitySerializer<T> : CodeCompiler
             if (ReflectionHelper.IsExtendedForeignEntityProperty(prop)) continue;
             if (ReflectionHelper.IsExtendedForeignListProperty(prop)) continue;
 
-            if (ReflectionHelper.IsPrimitiveTypeOrEnum(prop.PropertyType))
-            {
-                var readMethod = GetBinaryReadMethod(prop.PropertyType);
-                var writeMethod = GetBinaryWriteMethod(prop.PropertyType, propertyName);
+            var propertyName = prop.Name;
+            var propertyType = ReflectionHelper.GetUnderlyingPropertyType(prop.PropertyType);
 
+            if (ReflectionHelper.IsPrimitiveTypeOrEnum(propertyType))
+            {
                 if (ReflectionHelper.IsNulleble(prop))
                 {
+                    var readMethod = GetBinaryReadMethodNull(propertyType);
+                    var writeMethod = GetBinaryWriteMethodNull(propertyType, propertyName);
+
                     writeCode += @$"
                         if (value.{propertyName} == null)
                             writer.Write(true);
@@ -123,7 +124,7 @@ public class EntitySerializer<T> : CodeCompiler
                         }}";
 
                     readCode += @$"
-                        {prop.PropertyType.FullName} {propertyName} = null;
+                        {propertyType.FullName}? {propertyName} = null;
                         if (!reader.ReadBoolean())
                         {{
                             {propertyName} = {readMethod};
@@ -132,6 +133,9 @@ public class EntitySerializer<T> : CodeCompiler
                 }
                 else
                 {
+                    var readMethod = GetBinaryReadMethodNotNull(propertyType);
+                    var writeMethod = GetBinaryWriteMethodNotNull(propertyType, propertyName);
+
                     writeCode += @$"
                         {writeMethod};";
 
@@ -141,10 +145,10 @@ public class EntitySerializer<T> : CodeCompiler
             }
             else
             {
-                if (ReflectionHelper.IsGenericType(prop.PropertyType))
+                if (ReflectionHelper.IsGenericType(propertyType))
                     throw new Exception(
                         $"ZipDatabase Exception: Property '{propertyName}' of entity type '{type.FullName}' is not marked as [NotMapped] and is a " +
-                        $"{prop.PropertyType} type, which is not a valid type to serialize. The ZipDatabase engine " +
+                        $"{propertyType} type, which is not a valid type to serialize. The ZipDatabase engine " +
                         $"does not support generic types like Lists and Array, it only support:\r\n" +
                         $"\r\n" +
                         $"- Primative types.\r\n" +
@@ -157,9 +161,9 @@ public class EntitySerializer<T> : CodeCompiler
                         $"to signal those properties are not serialized when the dbcontext is saved. Please mark " +
                         $"those properties as [NotMapped] if this is intended.");
 
-                if (!ReflectionHelper.IsValidChildEntity(prop.PropertyType))
+                if (!ReflectionHelper.IsValidChildEntity(propertyType))
                     throw new Exception(
-                        $"ZipDatabase Exception: Child entity type '{prop.PropertyType}' of property '{propertyName}' of (child) entity type '{type.FullName}', " +
+                        $"ZipDatabase Exception: Child entity type '{propertyType}' of property '{propertyName}' of (child) entity type '{type.FullName}', " +
                         $"contains non-primitive types or generic classes that aren't marked as [NotMapped]. The ZipDatabase engine " +
                         $"does not support serialisation of non-primitive types or generic classes like Lists or Arrays. The ZipDatabase engine " +
                         $"only supports child entity types containing:\r\n" +
@@ -183,16 +187,16 @@ public class EntitySerializer<T> : CodeCompiler
                         else
                         {{
                             writer.Write(false);
-                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{propertyType.FullName}>(db);
                             {propertyName}Serializer.Write(writer, value.{propertyName}, db);
                         }}";
 
                     readCode += @$"
 
-                        {prop.PropertyType} {propertyName} = null;
+                        {propertyType} {propertyName} = null;
                         if (!reader.ReadBoolean())
                         {{
-                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{propertyType.FullName}>(db);
                             {propertyName} = {propertyName}Serializer.Read(reader, db);
                         }}";
 
@@ -201,12 +205,12 @@ public class EntitySerializer<T> : CodeCompiler
                 {
                     writeCode += @$"
 
-                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{propertyType.FullName}>(db);
                         {propertyName}Serializer.Write(writer, value.{propertyName}, db);";
 
                     readCode += @$"
 
-                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
+                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{propertyType.FullName}>(db);
                         var {propertyName} = {propertyName}Serializer.Read(reader, db);";
 
                 }
@@ -244,13 +248,40 @@ public class EntitySerializer<T> : CodeCompiler
             }}";
     }
 
-    private static string GetBinaryWriteMethod(Type type, string propertyName)
+    private static string GetBinaryWriteMethodNotNull(Type type, string propertyName)
     {
         if (type.IsEnum) return $"writer.Write((int)value.{propertyName})";
         if (type == typeof(DateTime)) return $"writer.Write(value.{propertyName}.ToBinary());";
         return $"writer.Write(value.{propertyName})";
     }
-    private static string GetBinaryReadMethod(Type type)
+    private static string GetBinaryReadMethodNotNull(Type type)
+    {
+        if (type.IsEnum) return $"({type.FullName})reader.ReadInt32()";
+        if (type == typeof(bool)) return "reader.ReadBoolean()";
+        if (type == typeof(byte)) return "reader.ReadByte()";
+        if (type == typeof(sbyte)) return "reader.ReadSByte()";
+        if (type == typeof(char)) return "reader.ReadChar()";
+        if (type == typeof(decimal)) return "reader.ReadDecimal()";
+        if (type == typeof(double)) return "reader.ReadDouble()";
+        if (type == typeof(float)) return "reader.ReadSingle()";
+        if (type == typeof(short)) return "reader.ReadInt16()";
+        if (type == typeof(ushort)) return "reader.ReadUInt16()";
+        if (type == typeof(int)) return "reader.ReadInt32()";
+        if (type == typeof(uint)) return "reader.ReadUInt32()";
+        if (type == typeof(long)) return "reader.ReadInt64()";
+        if (type == typeof(ulong)) return "reader.ReadUInt64()";
+        if (type == typeof(string)) return "reader.ReadString()";
+        if (type == typeof(DateTime)) return "DateTime.FromBinary(reader.ReadInt64())";
+        throw new Exception($"Type {type.Name} not supported while its added to the ReflectionHelper.IsPrimitiveType list.");
+    }
+    private static string GetBinaryWriteMethodNull(Type type, string propertyName)
+    {
+        if (type.IsEnum) return $"writer.Write((int)value.{propertyName}.Value)";
+        if (type == typeof(DateTime)) return $"writer.Write(value.{propertyName}.Value.ToBinary());";
+        if (type == typeof(string)) return $"writer.Write(value.{propertyName})";
+        return $"writer.Write(value.{propertyName}.Value)";
+    }
+    private static string GetBinaryReadMethodNull(Type type)
     {
         if (type.IsEnum) return $"({type.FullName})reader.ReadInt32()";
         if (type == typeof(bool)) return "reader.ReadBoolean()";
