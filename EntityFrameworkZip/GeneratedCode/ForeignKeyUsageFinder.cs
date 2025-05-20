@@ -7,13 +7,13 @@ namespace EntityFrameworkZip.GeneratedCode;
 
 public class ForeignKeyUsageFinder<T> : CodeCompiler
 {
-    private readonly Func<T, DbContext, bool, bool> ExtendEntityDelegate;
+    private readonly Func<T, DbContext, bool, bool> FindForeignKeyUsageDelegate;
     public readonly string Code;
 
     public bool FindForeignKeyUsage(T entity, DbContext dbContext, bool removeIfFound = false)
     {
         if (entity == null) throw new Exception("Entity cannot be null while extending");
-        return ExtendEntityDelegate(entity, dbContext, removeIfFound);
+        return FindForeignKeyUsageDelegate(entity, dbContext, removeIfFound);
     }
 
     internal ForeignKeyUsageFinder(DbContext dbContext)
@@ -28,7 +28,7 @@ public class ForeignKeyUsageFinder<T> : CodeCompiler
         var serializerType = asm.GetType(className)!;
         var createProxyMethod = serializerType.GetMethod(methodName)!;
 
-        ExtendEntityDelegate = (Func<T, DbContext, bool, bool>)Delegate.CreateDelegate(
+        FindForeignKeyUsageDelegate = (Func<T, DbContext, bool, bool>)Delegate.CreateDelegate(
             typeof(Func<T, DbContext, bool, bool>), createProxyMethod)!;
     }
 
@@ -87,7 +87,6 @@ public class ForeignKeyUsageFinder<T> : CodeCompiler
                 }}
             }}";
     }
-
     private static void CheckEntity(Type type, Type entityType, string dbSetName, string applicationDbContextTypeFullName,
         ref string codeRemoveIfFound, ref string codeExceptionIfFound, ref int listIndex,
         List<Type>? doneTypes = null, string baseProperty = "", string basePropertyNull = "")

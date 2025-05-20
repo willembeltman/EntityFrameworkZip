@@ -250,7 +250,7 @@ namespace EntityFrameworkZip.Helpers
                 .Any(i => i == typeof(IEntity));
         }
 
-        public static Type GetUnderlyingPropertyType(Type type)
+        public static Type GetUnderlyingType(Type type)
         {
             return Nullable.GetUnderlyingType(type) ?? type;
         }

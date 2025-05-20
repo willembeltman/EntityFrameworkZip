@@ -22,7 +22,7 @@ public class EntityExtender<T> : CodeCompiler
         var className = $"{type.Name}EntityExtender";
         var methodName = "ExtendEntity";
 
-        Code = GenerateSerializerCode(type, className, methodName, dbContext);
+        Code = GenerateExtenderCode(type, className, methodName, dbContext);
 
         var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
@@ -32,7 +32,7 @@ public class EntityExtender<T> : CodeCompiler
             typeof(Action<T, DbContext>), createProxyMethod)!;
     }
 
-    private static string GenerateSerializerCode(Type type, string proxyName, string methodName, DbContext dbContext)
+    private static string GenerateExtenderCode(Type type, string proxyName, string methodName, DbContext dbContext)
     {
         var className = type.Name;
         var fullClassName = type.FullName;

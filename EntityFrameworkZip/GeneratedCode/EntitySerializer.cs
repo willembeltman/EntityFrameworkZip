@@ -77,9 +77,6 @@ public class EntitySerializer<T> : CodeCompiler
         var dbContextType = typeof(DbContext);
         var dbContextTypeFullName = dbContextType.FullName;
 
-        //var binarySerializerType = typeof(EntitySerializer<>);
-        //var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
-
         var entitySerializerCollectionType = typeof(EntitySerializerCollection);
         var entitySerializerCollectionTypeFullName = entitySerializerCollectionType.FullName;
         var entitySerializerCollectionTypeMethod = entitySerializerCollectionType.GetMethods().First().Name;
@@ -92,8 +89,8 @@ public class EntitySerializer<T> : CodeCompiler
         {
             if (!ReflectionHelper.HasPublicGetter(prop)) continue;
             if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-
             if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
+
             if (ReflectionHelper.IsOldExtendedForeignEntityProperty(prop))
                 throw new Exception(
                     "As of version 1.0.8, we’ve moved from Lazy<T> to ILazy<T> to fix a subtle bug with foreign keys not updating.\n" +
@@ -101,17 +98,16 @@ public class EntitySerializer<T> : CodeCompiler
                     "Read more at: https://github.com/willembeltman/EntityFrameworkZip"
                 ); 
 
-            if (ReflectionHelper.IsExtendedForeignEntityProperty(prop)) continue;
-            if (ReflectionHelper.IsExtendedForeignListProperty(prop)) continue;
+            if (ReflectionHelper.IsExtendedForeignProperty(prop)) continue;
 
             var propertyName = prop.Name;
-            var propertyType = ReflectionHelper.GetUnderlyingPropertyType(prop.PropertyType);
+            var propertyType = ReflectionHelper.GetUnderlyingType(prop.PropertyType);
 
             if (ReflectionHelper.IsPrimitiveTypeOrEnum(propertyType))
             {
                 if (ReflectionHelper.IsNulleble(prop))
                 {
-                    var readMethod = GetBinaryReadMethodNull(propertyType);
+                    var readMethod = GetBinaryReadMethod(propertyType);
                     var writeMethod = GetBinaryWriteMethodNull(propertyType, propertyName);
 
                     writeCode += @$"
@@ -133,7 +129,7 @@ public class EntitySerializer<T> : CodeCompiler
                 }
                 else
                 {
-                    var readMethod = GetBinaryReadMethodNotNull(propertyType);
+                    var readMethod = GetBinaryReadMethod(propertyType);
                     var writeMethod = GetBinaryWriteMethodNotNull(propertyType, propertyName);
 
                     writeCode += @$"
@@ -254,26 +250,6 @@ public class EntitySerializer<T> : CodeCompiler
         if (type == typeof(DateTime)) return $"writer.Write(value.{propertyName}.ToBinary());";
         return $"writer.Write(value.{propertyName})";
     }
-    private static string GetBinaryReadMethodNotNull(Type type)
-    {
-        if (type.IsEnum) return $"({type.FullName})reader.ReadInt32()";
-        if (type == typeof(bool)) return "reader.ReadBoolean()";
-        if (type == typeof(byte)) return "reader.ReadByte()";
-        if (type == typeof(sbyte)) return "reader.ReadSByte()";
-        if (type == typeof(char)) return "reader.ReadChar()";
-        if (type == typeof(decimal)) return "reader.ReadDecimal()";
-        if (type == typeof(double)) return "reader.ReadDouble()";
-        if (type == typeof(float)) return "reader.ReadSingle()";
-        if (type == typeof(short)) return "reader.ReadInt16()";
-        if (type == typeof(ushort)) return "reader.ReadUInt16()";
-        if (type == typeof(int)) return "reader.ReadInt32()";
-        if (type == typeof(uint)) return "reader.ReadUInt32()";
-        if (type == typeof(long)) return "reader.ReadInt64()";
-        if (type == typeof(ulong)) return "reader.ReadUInt64()";
-        if (type == typeof(string)) return "reader.ReadString()";
-        if (type == typeof(DateTime)) return "DateTime.FromBinary(reader.ReadInt64())";
-        throw new Exception($"Type {type.Name} not supported while its added to the ReflectionHelper.IsPrimitiveType list.");
-    }
     private static string GetBinaryWriteMethodNull(Type type, string propertyName)
     {
         if (type.IsEnum) return $"writer.Write((int)value.{propertyName}.Value)";
@@ -281,7 +257,7 @@ public class EntitySerializer<T> : CodeCompiler
         if (type == typeof(string)) return $"writer.Write(value.{propertyName})";
         return $"writer.Write(value.{propertyName}.Value)";
     }
-    private static string GetBinaryReadMethodNull(Type type)
+    private static string GetBinaryReadMethod(Type type)
     {
         if (type.IsEnum) return $"({type.FullName})reader.ReadInt32()";
         if (type == typeof(bool)) return "reader.ReadBoolean()";
