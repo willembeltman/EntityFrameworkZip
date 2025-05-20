@@ -470,3 +470,47 @@ Still evaluating whether switching to a proxy-based system is worth the added co
 
 - [ ] Add recursive removing of child entities, or at least a exception if we detect foreign keys.
 
+
+---
+
+## 📝 Changelog
+
+### v1.0.9
+- Added full XML documentation for all public classes and members.
+- Replaced LINQ `Where` clause foreign key lookups with dictionary-based resolution for improved performance.
+- Introduced `StaticLazy<T>` as a placeholder type for referencing new (untracked) entities before attaching them to the context.
+- Updated example code to demonstrate `StaticLazy` usage.
+- Removed internal caching from `ILazy<T>` to avoid stale references and simplify lazy-loading logic.
+
+### v1.0.8
+- Added support for multiple `DbContext` instances using the same entity types.
+- Changed internal types and members to `public` to improve extensibility.
+- Moved external components and helpers into the root namespace for better discoverability.
+- Introduced `ILazy<T>` to replace `Lazy<T>` with a more flexible and context-aware implementation.
+
+### v1.0.7
+- Fixed an issue with recursive read locks when accessing nested relationships.
+- Removed debug console output.
+- Performed general code cleanup and refactoring.
+
+### v1.0.6
+- Added support for enum properties and all primitive types.
+- In-memory mode now disposes the ZIP archive immediately; `DbContext` is no longer `IDisposable`.
+
+### v1.0.5
+- Additional README improvements with more usage details.
+
+### v1.0.4
+- Fixed entity insertion bugs that caused inconsistencies during `SaveChanges`.
+
+### v1.0.3
+- Minor improvements to the README.
+
+### v1.0.2
+- README cleanup and clarifications.
+
+### v1.0.1
+- Initial README with basic usage instructions.
+
+### v1.0.0
+- Initial working prototype with basic entity tracking and ZIP-based persistence.
