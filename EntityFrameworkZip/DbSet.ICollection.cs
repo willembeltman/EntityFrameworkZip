@@ -130,7 +130,8 @@ public partial class DbSet<T> : ICollection<T>
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
         var foreignKeyUsageFinder = EntityFactoryCollection.GetOrCreate<T>(DbContext);
-        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext)) throw new Exception("Foreign key found");
+        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext))
+            throw new Exception("Foreign key found towards the item to remove");
 
         Lock.EnterWriteLock();
         try
@@ -155,7 +156,8 @@ public partial class DbSet<T> : ICollection<T>
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
         var foreignKeyUsageFinder = EntityFactoryCollection.GetOrCreate<T>(DbContext);
-        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext, removeDependencies) && !removeDependencies) throw new Exception("Foreign key found");
+        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext, removeDependencies) && !removeDependencies) 
+            throw new Exception("Foreign key found towards the item to remove");
 
         Lock.EnterWriteLock();
         try

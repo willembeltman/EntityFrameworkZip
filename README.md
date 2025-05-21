@@ -470,7 +470,8 @@ Ensure the insert function updates existing items already in the database, or de
 Still evaluating whether switching to a proxy-based system is worth the added complexity.
 Conclusion: not going to do it.
 
-- [ ] Add recursive removing of child entities, or at least a exception if we detect foreign keys.
+- [X] Add recursive removing of child entities, or at least a exception if we detect foreign keys.
+(Done in 1.0.10)
 
 
 ---
@@ -478,13 +479,14 @@ Conclusion: not going to do it.
 ## 📝 Changelog
 
 ### v1.0.10
-- Changed `ICollection.Remove` behavior: now only unsets the foreign key (sets it to 0 or null) instead of removing the referenced entity from the `DbSet<TForeign>`.
-- Defined consistent behavior for assigning related entities to new entities (ensures proper add/update semantics).
-- Added support for nullable properties (I didn't realize we didn't support this — oeps, bug).
-- Added support for nullable foreign keys (`long?`), which now default to `null` instead of `0`.
-- Updated test program to test nullable fields.
-- Combined all generated code so startup is faster.
-- Massive code cleanup
+- Adjusted ICollection.Remove behavior: now only unsets the foreign key (sets it to 0 or null) instead of removing the referenced entity from the DbSet<TForeign>.
+- Standardized behavior for assigning related entities to new entities to ensure correct add/update semantics.
+- Added support for nullable properties (surprisingly, this was previously unsupported — oops!).
+- Enabled support for nullable foreign keys (long?), which now default to null instead of 0.
+- Updated the test program to include tests for nullable fields.
+- Consolidated all generated code to improve startup performance.
+- Performed extensive code cleanup.
+- Implemented detection of foreign key usage when removing an entity. An exception is now thrown if the foreign key is still in use. You can override this behavior to force removal (i.e., disconnect the foreign key).
 
 ### v1.0.9
 - Added full XML documentation for all public classes and members.
