@@ -15,9 +15,9 @@ public static class EntityFactoryCollection
     /// <returns>An <see cref="EntityFactory{T}"/> associated with the given entity and context types.</returns>
     public static EntityFactory<T> GetOrCreate<T>(DbContext dbContext)
     {
-        var type = typeof(T);
+        var entityType = typeof(T);
         var applicationDbContextType = dbContext.GetType();
-        var search = new EntityFactoryKey(type, applicationDbContextType);
+        var search = new EntityFactoryKey(entityType, applicationDbContextType);
         if (EntityFactorys.TryGetValue(search, out var serializer))
         {
             return (EntityFactory<T>)serializer;

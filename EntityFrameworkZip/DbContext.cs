@@ -26,8 +26,8 @@ public class DbContext
         using var ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
         using var ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
 
-        var extender = DbContextFactoryCollection.GetOrCreate(this);
-        extender.ExtendDbContext(this, ZipArchive);
+        var factory = DbContextFactoryCollection.GetOrCreate(this);
+        factory.LoadDbSetsFromZip(this, ZipArchive);
     }
 
     /// <summary>
@@ -40,8 +40,8 @@ public class DbContext
         FullName = fullName;
         DbSets = [];
 
-        var extender = DbContextFactoryCollection.GetOrCreate(this);
-        extender.ExtendDbContext(this, ZipArchive);
+        var factory = DbContextFactoryCollection.GetOrCreate(this);
+        factory.LoadDbSetsFromZip(this, ZipArchive);
     }
 
     /// <summary>
@@ -54,8 +54,8 @@ public class DbContext
         Directory = directory;
         DbSets = [];
 
-        var extender = DbContextFactoryCollection.GetOrCreate(this);
-        extender.ExtendDbContext(this, directory);
+        var factory = DbContextFactoryCollection.GetOrCreate(this);
+        factory.LoadDbSetsFromDirectory(this, directory);
     }
 
     /// <summary>

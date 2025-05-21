@@ -4,7 +4,7 @@ namespace EntityFrameworkZip.GeneratedCode;
 
 public partial class EntityFactory<T>
 {
-    private static string GenerateExtenderCode(Type type, string methodName, DbContext dbContext)
+    private static string GenerateNavigationCode(Type type, string methodName, DbContext dbContext)
     {
         var className = type.Name;
         var fullClassName = type.FullName;
@@ -48,7 +48,7 @@ public partial class EntityFactory<T>
                     if (item.{propertyName} != null)
                     {{
                         var {propertyName}EntityFactory = {entityFactoryCollectionTypeFullName}.{entityFactoryCollectionTypeMethod}<{prop.PropertyType.FullName}>(db);
-                        {propertyName}EntityFactory.Extend(item.{propertyName}, db);
+                        {propertyName}EntityFactory.SetNavigationProperties(item.{propertyName}, db);
                     }}";
                 continue;
             }
@@ -56,11 +56,11 @@ public partial class EntityFactory<T>
 
             if (ReflectionHelper.IsNavigationListProperty(prop))
             {
-                GenerateExtenderCode_GenerateForeignListProperty(type, className, fullClassName, ref lazyCode, foreignEntityCollectionNotNullFullName, foreignEntityCollectionNullFullName, applicationDbContextType, prop, propertyName);
+                GenerateNavigationCode_GenerateForeignListProperty(type, className, fullClassName, ref lazyCode, foreignEntityCollectionNotNullFullName, foreignEntityCollectionNullFullName, applicationDbContextType, prop, propertyName);
             }
             else if (ReflectionHelper.IsNavigationEntityProperty(prop))
             {
-                GenerateExtenderCode_GenerateForeignEntityProperty(type, fullClassName, ref lazyCode, foreignEntityLazyNotNullFullName, foreignEntityLazyNullFullName, applicationDbContextType, prop, propertyName);
+                GenerateNavigationCode_GenerateForeignEntityProperty(type, fullClassName, ref lazyCode, foreignEntityLazyNotNullFullName, foreignEntityLazyNullFullName, applicationDbContextType, prop, propertyName);
             }
         }
 
@@ -73,7 +73,7 @@ public partial class EntityFactory<T>
                 }}
                 ";
     }
-    private static void GenerateExtenderCode_GenerateForeignEntityProperty(
+    private static void GenerateNavigationCode_GenerateForeignEntityProperty(
         Type type, string? fullClassName, ref string lazyCode,
         string foreignEntityLazyNotNullFullName, string foreignEntityLazyNullFullName,
         Type applicationDbContextType, System.Reflection.PropertyInfo prop, string propertyName)
@@ -143,7 +143,7 @@ public partial class EntityFactory<T>
                     }}";
         }
     }
-    private static void GenerateExtenderCode_GenerateForeignListProperty(
+    private static void GenerateNavigationCode_GenerateForeignListProperty(
         Type type, string className, string? fullClassName, ref string lazyCode,
         string foreignEntityCollectionNotNullFullName, string foreignEntityCollectionNullFullName,
         Type applicationDbContextType, System.Reflection.PropertyInfo prop, string propertyName)

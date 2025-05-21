@@ -6,6 +6,11 @@ namespace EntityFrameworkZip.GeneratedCode;
 
 public static class CodeCompiler
 {
+    /// <summary>
+    /// Compiles a chunk of C# code in to a Assembly
+    /// </summary>
+    /// <param name="code">The C# code</param>
+    /// <returns>The assembly</returns>
     public static Assembly Compile(string code)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(code);

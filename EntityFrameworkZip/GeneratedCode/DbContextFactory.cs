@@ -8,13 +8,13 @@ public class DbContextFactory
     /// Delegate die de logica bevat om een DbContext uit te breiden met DbSet-instanties
     /// vanuit een ZipArchive (gecomprimeerde opslag).
     /// </summary>
-    private readonly Action<DbContext, ZipArchive> ExtendDbContextZipDelegate;
+    private readonly Action<DbContext, ZipArchive> LoadDbSetsFromZipDelegate;
 
     /// <summary>
     /// Delegate die de logica bevat om een DbContext uit te breiden met DbSet-instanties
     /// vanuit een directory (map in het bestandssysteem).
     /// </summary>
-    private readonly Action<DbContext, DirectoryInfo> ExtendDbContextDirectoryDelegate;
+    private readonly Action<DbContext, DirectoryInfo> LoadDbSetsFromDirectoryDelegate;
 
     /// <summary>
     /// De gegenereerde broncode die gebruikt wordt om de extensies te compileren.
@@ -24,24 +24,24 @@ public class DbContextFactory
 
     /// <summary>
     /// Breidt de gegeven DbContext uit door de DbSet-collecties te initialiseren met data uit een ZipArchive.
-    /// Dit wordt gedaan via de dynamisch gecompileerde delegate <see cref="ExtendDbContextZipDelegate"/>.
+    /// Dit wordt gedaan via de dynamisch gecompileerde delegate <see cref="LoadDbSetsFromZipDelegate"/>.
     /// </summary>
     /// <param name="dbContext">De DbContext die uitgebreid wordt.</param>
     /// <param name="zipArchive">De ZipArchive waaruit de data wordt geladen.</param>
-    public void ExtendDbContext(DbContext dbContext, ZipArchive zipArchive)
+    public void LoadDbSetsFromZip(DbContext dbContext, ZipArchive zipArchive)
     {
-        ExtendDbContextZipDelegate(dbContext, zipArchive);
+        LoadDbSetsFromZipDelegate(dbContext, zipArchive);
     }
 
     /// <summary>
     /// Breidt de gegeven DbContext uit door de DbSet-collecties te initialiseren met data uit een directory.
-    /// Dit wordt gedaan via de dynamisch gecompileerde delegate <see cref="ExtendDbContextDirectoryDelegate"/>.
+    /// Dit wordt gedaan via de dynamisch gecompileerde delegate <see cref="LoadDbSetsFromDirectoryDelegate"/>.
     /// </summary>
     /// <param name="dbContext">De DbContext die uitgebreid wordt.</param>
     /// <param name="directory">De directory waaruit de data wordt geladen.</param>
-    public void ExtendDbContext(DbContext dbContext, DirectoryInfo directory)
+    public void LoadDbSetsFromDirectory(DbContext dbContext, DirectoryInfo directory)
     {
-        ExtendDbContextDirectoryDelegate(dbContext, directory);
+        LoadDbSetsFromDirectoryDelegate(dbContext, directory);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class DbContextFactory
         var extenderMethodNameDirectory = "ExtendDbContextDirectory";
 
         // Genereer de C# broncode die de extend-methodes definieert
-        Code = GenerateSerializerCode(applicationDbContextType, extenderName, extenderMethodNameZip, extenderMethodNameDirectory);
+        Code = GenerateDbSetLoaderCode(applicationDbContextType, extenderName, extenderMethodNameZip, extenderMethodNameDirectory);
 
         // Compileer de gegenereerde code in een assembly
         var asm = CodeCompiler.Compile(Code);
@@ -71,9 +71,9 @@ public class DbContextFactory
         var createProxyMethodDirectory = serializerType.GetMethod(extenderMethodNameDirectory)!;
 
         // Maak delegates aan voor de methodes zodat ze snel aangeroepen kunnen worden
-        ExtendDbContextZipDelegate = (Action<DbContext, ZipArchive>)Delegate.CreateDelegate(
+        LoadDbSetsFromZipDelegate = (Action<DbContext, ZipArchive>)Delegate.CreateDelegate(
             typeof(Action<DbContext, ZipArchive>), createProxyMethodZip)!;
-        ExtendDbContextDirectoryDelegate = (Action<DbContext, DirectoryInfo>)Delegate.CreateDelegate(
+        LoadDbSetsFromDirectoryDelegate = (Action<DbContext, DirectoryInfo>)Delegate.CreateDelegate(
             typeof(Action<DbContext, DirectoryInfo>), createProxyMethodDirectory)!;
     }
 
@@ -90,7 +90,7 @@ public class DbContextFactory
     /// <param name="extenderZipMethodName">De naam van de methode die een ZipArchive gebruikt.</param>
     /// <param name="extenderDirectoryMethodName">De naam van de methode die een DirectoryInfo gebruikt.</param>
     /// <returns>De volledige broncode als string.</returns>
-    private static string GenerateSerializerCode(Type applicationDbContextType, string extenderName, string extenderZipMethodName, string extenderDirectoryMethodName)
+    private static string GenerateDbSetLoaderCode(Type applicationDbContextType, string extenderName, string extenderZipMethodName, string extenderDirectoryMethodName)
     {
         var applicationDbContextName = applicationDbContextType.Name;
         var applicationDbContextFullName = applicationDbContextType.FullName;

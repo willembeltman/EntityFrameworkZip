@@ -42,7 +42,7 @@ public partial class DbSet<T> : ICollection<T>
         {
             item.Id = ++LastId;
             Cache[item.Id] = item;
-            EntityFactory.Extend(item, DbContext);
+            EntityFactory.SetNavigationProperties(item, DbContext);
         }
         finally
         {
@@ -70,7 +70,7 @@ public partial class DbSet<T> : ICollection<T>
         try
         {
             Cache[item.Id] = item;
-            EntityFactory.Extend(item, DbContext);
+            EntityFactory.SetNavigationProperties(item, DbContext);
 
             // Track the highest ID so new entities get a unique one.
             if (LastId < item.Id) LastId = item.Id;
@@ -252,7 +252,7 @@ public partial class DbSet<T> : ICollection<T>
         {
             foreach (var item in Cache.Values)
             {
-                EntityFactory.Extend(item, DbContext);
+                EntityFactory.SetNavigationProperties(item, DbContext);
                 if (arrayIndex >= array.Length) throw new ArgumentException("Target array too small");
                 array[arrayIndex++] = item;
             }
@@ -275,7 +275,7 @@ public partial class DbSet<T> : ICollection<T>
         {
             foreach (var item in Cache.Values)
             {
-                EntityFactory.Extend(item, DbContext);
+                EntityFactory.SetNavigationProperties(item, DbContext);
                 yield return item;
             }
         }

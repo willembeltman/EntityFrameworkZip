@@ -49,7 +49,6 @@ public partial class DbSet<T>
         Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         Cache = new Dictionary<long, T>();
         EntityFactory = EntityFactoryCollection.GetOrCreate<T>(dbContext);
-        EntityFactory = EntityFactoryCollection.GetOrCreate<T>(dbContext);
     }
 
     /// <summary>

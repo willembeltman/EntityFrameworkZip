@@ -16,7 +16,7 @@ public partial class DbSet<T> : IDbSet
     public string TypeName { get; }
 
     /// <summary>
-    /// Loads the cache from a given <see cref="ZipArchive"/> using .id, .index, and .data entries.
+    /// Loads the cache from a given <see cref="ZipArchive"/> using .id and .data entries.
     /// </summary>
     /// <param name="zipArchive">The ZIP archive containing the persisted entity data.</param>
     public void LoadCache(ZipArchive zipArchive)
@@ -41,7 +41,7 @@ public partial class DbSet<T> : IDbSet
     }
 
     /// <summary>
-    /// Loads the cache from files located in a given directory. Files must match the naming pattern {TypeName}.id/.index/.data.
+    /// Loads the cache from files located in a given directory. Files must match the naming pattern {TypeName}.id/.data.
     /// </summary>
     /// <param name="directory">The directory containing the persisted entity files.</param>
     public void LoadCache(DirectoryInfo directory)
@@ -69,7 +69,7 @@ public partial class DbSet<T> : IDbSet
     }
 
     /// <summary>
-    /// Writes the entity cache to a given <see cref="ZipArchive"/>, storing .id, .index, and .data entries.
+    /// Writes the entity cache to a given <see cref="ZipArchive"/>, storing .id and .data entries.
     /// </summary>
     /// <param name="zipArchive">The ZIP archive to write to.</param>
     public void WriteCache(ZipArchive zipArchive)
@@ -94,7 +94,7 @@ public partial class DbSet<T> : IDbSet
     }
 
     /// <summary>
-    /// Writes the entity cache to files in the given directory. Overwrites any existing {TypeName}.id/.index/.data files.
+    /// Writes the entity cache to files in the given directory. Overwrites any existing {TypeName}.id/.data files.
     /// </summary>
     /// <param name="directory">The directory to write the files to.</param>
     public void WriteCache(DirectoryInfo directory)
@@ -124,8 +124,6 @@ public partial class DbSet<T> : IDbSet
     /// Reads all entities from the provided streams and rebuilds the cache.
     /// </summary>
     /// <param name="idReader">Reader for the ID file (.id).</param>
-    /// <param name="indexReader">Reader for the index file (.index).</param>
-    /// <param name="dataStream">Stream for the data file (.data).</param>
     /// <param name="dataReader">Reader for the data stream.</param>
     private void LoadCache(BinaryReader idReader, BinaryReader dataReader)
     {
@@ -143,7 +141,6 @@ public partial class DbSet<T> : IDbSet
     /// Writes the current entity cache to the given writers.
     /// </summary>
     /// <param name="idWriter">Writer for the ID file.</param>
-    /// <param name="indexWriter">Writer for the index file.</param>
     /// <param name="dataWriter">Writer for the data file.</param>
     private void WriteCache(BinaryWriter idWriter, BinaryWriter dataWriter)
     {

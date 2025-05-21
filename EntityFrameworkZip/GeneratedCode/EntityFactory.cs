@@ -25,7 +25,7 @@ public partial class EntityFactory<T>
             public static class {className}
             {{
                 {GenerateSerializerCode(type, readMethodName, writeMethodName, dbContext)}
-                {GenerateExtenderCode(type, extendEntityMethodName, dbContext)}
+                {GenerateNavigationCode(type, extendEntityMethodName, dbContext)}
                 {GenerateForeignKeyUsageCode(type, findForeignKeyUsageMethodName, dbContext)}
             }}";
 
@@ -50,20 +50,44 @@ public partial class EntityFactory<T>
             typeof(Func<T, DbContext, bool, bool>), findForeignKeyUsageMethod)!;
     }
 
+    /// <summary>
+    /// Serializes the entity and writes it to the BinaryWriter (bw)
+    /// </summary>
+    /// <param name="bw">The BinaryWriter bw where the entity should be written to.</param>
+    /// <param name="entity">The entity to write to the BinaryWriter bw.</param>
+    /// <param name="dbContext">The DbContext needed to instanciate/get any sub-entity EntityFactories.</param>
     public void Write(BinaryWriter bw, T entity, DbContext dbContext)
     {
         if (entity == null) throw new Exception("Entity cannot be null while extending");
         WriteDelegate(bw, entity, dbContext);
     }
-    public T Read(BinaryReader bw, DbContext dbContext)
+    /// <summary>
+    /// Instanciates and reads the next entity from the BinaryReader br.
+    /// </summary>
+    /// <param name="br">The BinaryReader br where the next entity should read from.</param>
+    /// <param name="dbContext">The DbContext needed to instanciate/get any sub-entity EntityFactories.</param>
+    /// <returns>The entity read from the BinaryReader</returns>
+    public T Read(BinaryReader br, DbContext dbContext)
     {
-        return ReadDelegate(bw, dbContext);
+        return ReadDelegate(br, dbContext);
     }
-    public void Extend(T entity, DbContext dbContext)
+    /// <summary>
+    /// Setups all navigation properties of the entity so they can be used.
+    /// </summary>
+    /// <param name="entity">The entity of which the navigation properties should be set.</param>
+    /// <param name="dbContext">The DbContext needed to instanciate/get any sub-entity EntityFactories.</param>
+    public void SetNavigationProperties(T entity, DbContext dbContext)
     {
         if (entity == null) throw new Exception("Entity cannot be null while extending");
         ExtendDelegate(entity, dbContext);
     }
+    /// <summary>
+    /// Finds any foreign key in the database point towards the supplied entity
+    /// </summary>
+    /// <param name="entity">The entity which we have to search references for.</param>
+    /// <param name="dbContext">The DbContext needed to instanciate/get any sub-entity EntityFactories.</param>
+    /// <param name="removeIfFound">Optional parameter to override set all foreign keys towards this entity to 0 or null.</param>
+    /// <returns>There were any references found (and deleted/set to 0 or null)</returns>
     public bool FindForeignKeyUsage(T entity, DbContext dbContext, bool removeIfFound = false)
     {
         if (entity == null) throw new Exception("Entity cannot be null while extending");
