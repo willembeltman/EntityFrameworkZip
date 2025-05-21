@@ -427,12 +427,12 @@ Simply update your properties or fields:
 
 // Before:
 ```csharp
-public Lazy<Person> Owner;
+public virtual Lazy<Person> Owner { get; set; }
 ```
 
 // After:
 ```csharp
-public ILazy<Person> Owner;
+public virtual ILazy<Person> Owner { get; set; }
 ```
 
 Sorry for the inconvenience.
