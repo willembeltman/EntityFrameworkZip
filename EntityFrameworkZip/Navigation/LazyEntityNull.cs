@@ -2,6 +2,7 @@
 
 /// <summary>
 /// Implements a lazy-loading foreign entity reference for entities implementing <see cref="IEntity"/>.
+/// (with nullsble foreign keys)
 /// </summary>
 /// <typeparam name="TPrimary">The type of the primary entity that is being referenced.</typeparam>
 /// <typeparam name="TForeign">The type of the foreign entity holding the foreign key.</typeparam>

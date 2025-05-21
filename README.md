@@ -397,21 +397,19 @@ if (company2.OwnerPerson.Value.Name != "Bob")
 
 ## ❗ Notes
 
-- This is an **in-memory** database — data is only saved if you explicitly call `SaveChanges()`.
+- This is an in-memory database — data is only persisted when you explicitly call SaveChanges().
+- All entities must implement the IEntity interface, which requires at least an Id property.
+- Foreign key relationships are automatically managed.
 
-- All entities must implement the `IEntity` interface (with at least an `Id` property).
+### One-to-many relationships
+- You can add or remove items directly to/from the navigation collection on the parent entity.
+- Adding an item will automatically set its foreign key to point to the parent.
+- Removing an item will reset its foreign key to 0 or null, depending on the key type.
 
-- Foreign key relationships are **automatically managed**.
-
-- **One-to-many** relationships:
-  - You can add or remove items directly from the navigation list on the entity.
-
-
-- **Many-to-one** relationships:
-  - These must be set manually via the foreign key `{EntityName}Id` property.
-  - The navigation property is read-only and automatically resolved based on the ID — 
-    it only needs to be included in the corresponding `DbSet`.
-
+### Many-to-one relationships
+- You can set the relationship by assigning the {EntityName}Id property directly.
+- Alternatively, you can assign the navigation property (ILazy<T>.Value) — this will automatically update the foreign key.
+- Setting the navigation property to null will reset the foreign key to 0 or null.
 
 ---
 
@@ -487,6 +485,7 @@ Conclusion: not going to do it.
 - Consolidated all generated code to improve startup performance.
 - Performed extensive code cleanup.
 - Implemented detection of foreign key usage when removing an entity. An exception is now thrown if the foreign key is still in use. You can override this behavior to force removal (i.e., disconnect the foreign key).
+- Removed index file generation (this was a remnant from a previous project that supported live updates to the datasets on disk).
 
 ### v1.0.9
 - Added full XML documentation for all public classes and members.
@@ -500,6 +499,7 @@ Conclusion: not going to do it.
 - Changed internal types and members to `public` to improve extensibility.
 - Moved external components and helpers into the root namespace for better discoverability.
 - Introduced `ILazy<T>` to replace `Lazy<T>` with a more flexible and context-aware implementation.
+- Added support for saving and loading to a directory instead of a zip for extra speed.
 
 ### v1.0.7
 - Fixed an issue with recursive read locks when accessing nested relationships.

@@ -21,6 +21,8 @@ testCompany.Employees.Add(bob);
 // Add the company to the context. This operation also registers all related employees.
 db.Companies.Add(testCompany);
 
+alice.LastModifiedDate = DateTime.Now;
+
 // Verify initial lazy loading of the OwnerPerson property.
 if (testCompany.OwnerPerson.Value.Name != "Alice")
 {
@@ -82,8 +84,25 @@ db.SaveChanges();
 var db2 = new MyDbContext(new DirectoryInfo("test"));
 var company2 = db2.Companies.Last();
 var bob2 = company2.Employees.First(a => a.Name == "Bob");
+var alice2 = company2.Employees.First(a => a.Name == "Alice");
 
 // Verify deserialized entity properties, including enums and lazy relationships.
+if (bob2 == null)
+{
+    throw new Exception();
+}
+if (bob2.LastModifiedDate != null)
+{
+    throw new Exception();
+}
+if (alice2 == null)
+{
+    throw new Exception();
+}
+if (alice2.LastModifiedDate == null)
+{
+    throw new Exception();
+}
 if (bob2.Rank != RankEnum.Second)
 {
     throw new Exception("Test failed: Bob's RankEnum is not Second.");

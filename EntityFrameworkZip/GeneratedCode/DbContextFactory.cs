@@ -4,52 +4,43 @@ using System.IO.Compression;
 
 public class DbContextFactory
 {
-    /// <summary>
-    /// Delegate die de logica bevat om een DbContext uit te breiden met DbSet-instanties
-    /// vanuit een ZipArchive (gecomprimeerde opslag).
-    /// </summary>
     private readonly Action<DbContext, ZipArchive> LoadDbSetsFromZipDelegate;
-
-    /// <summary>
-    /// Delegate die de logica bevat om een DbContext uit te breiden met DbSet-instanties
-    /// vanuit een directory (map in het bestandssysteem).
-    /// </summary>
     private readonly Action<DbContext, DirectoryInfo> LoadDbSetsFromDirectoryDelegate;
 
     /// <summary>
-    /// De gegenereerde broncode die gebruikt wordt om de extensies te compileren.
-    /// Dit is een stringrepresentatie van C#-code die specifieke DbSets in de DbContext initialiseert.
+    /// The generated source code used to compile the DbContext extension logic.
+    /// This is a string representation of C# code that initializes specific DbSets within the DbContext.
     /// </summary>
     public readonly string Code;
 
     /// <summary>
-    /// Breidt de gegeven DbContext uit door de DbSet-collecties te initialiseren met data uit een ZipArchive.
-    /// Dit wordt gedaan via de dynamisch gecompileerde delegate <see cref="LoadDbSetsFromZipDelegate"/>.
+    /// Extends the given DbContext by initializing its DbSet collections with data from a ZipArchive.
+    /// This is done using the dynamically compiled delegate <see cref="LoadDbSetsFromZipDelegate"/>.
     /// </summary>
-    /// <param name="dbContext">De DbContext die uitgebreid wordt.</param>
-    /// <param name="zipArchive">De ZipArchive waaruit de data wordt geladen.</param>
+    /// <param name="dbContext">The DbContext to extend.</param>
+    /// <param name="zipArchive">The ZipArchive from which data is loaded.</param>
     public void LoadDbSetsFromZip(DbContext dbContext, ZipArchive zipArchive)
     {
         LoadDbSetsFromZipDelegate(dbContext, zipArchive);
     }
 
     /// <summary>
-    /// Breidt de gegeven DbContext uit door de DbSet-collecties te initialiseren met data uit een directory.
-    /// Dit wordt gedaan via de dynamisch gecompileerde delegate <see cref="LoadDbSetsFromDirectoryDelegate"/>.
+    /// Extends the given DbContext by initializing its DbSet collections with data from a directory.
+    /// This is done using the dynamically compiled delegate <see cref="LoadDbSetsFromDirectoryDelegate"/>.
     /// </summary>
-    /// <param name="dbContext">De DbContext die uitgebreid wordt.</param>
-    /// <param name="directory">De directory waaruit de data wordt geladen.</param>
+    /// <param name="dbContext">The DbContext to extend.</param>
+    /// <param name="directory">The directory from which data is loaded.</param>
     public void LoadDbSetsFromDirectory(DbContext dbContext, DirectoryInfo directory)
     {
         LoadDbSetsFromDirectoryDelegate(dbContext, directory);
     }
 
     /// <summary>
-    /// Constructor die dynamisch code genereert en compileert om de DbContext uit te breiden.
-    /// Op basis van de reflectie op het DbContext-type wordt C# code gegenereerd die alle DbSet properties
-    /// initialiseert met DbSet instanties die gekoppeld zijn aan een ZipArchive of directory.
+    /// Constructor that dynamically generates and compiles code to extend a DbContext.
+    /// Based on reflection of the DbContext type, it generates C# code that initializes all DbSet properties
+    /// with instances linked to either a ZipArchive or a directory.
     /// </summary>
-    /// <param name="dbContext">De DbContext waarvan het type wordt gebruikt voor codegeneratie.</param>
+    /// <param name="dbContext">The DbContext whose type is used for code generation.</param>
     public DbContextFactory(DbContext dbContext)
     {
         var applicationDbContextType = dbContext.GetType();
@@ -78,18 +69,18 @@ public class DbContextFactory
     }
 
     /// <summary>
-    /// Genereert de broncode voor een extender klasse die twee methoden bevat:
-    /// - ExtendDbContextZip: initialiseert DbSets met ZipArchive
-    /// - ExtendDbContextDirectory: initialiseert DbSets met een DirectoryInfo
+    /// Generates the source code for an extender class that contains two methods:
+    /// - ExtendDbContextZip: initializes DbSets using a ZipArchive
+    /// - ExtendDbContextDirectory: initializes DbSets using a DirectoryInfo
     /// 
-    /// Voor elke publieke, setbare DbSet property in de DbContext wordt code gegenereerd die een nieuwe DbSet instantie
-    /// maakt met de corresponderende opslag (zip of directory).
+    /// For each public, settable DbSet property in the DbContext, code is generated that creates a new
+    /// DbSet instance backed by either the zip archive or the directory.
     /// </summary>
-    /// <param name="applicationDbContextType">Het type van de DbContext.</param>
-    /// <param name="extenderName">De naam van de gegenereerde extender klasse.</param>
-    /// <param name="extenderZipMethodName">De naam van de methode die een ZipArchive gebruikt.</param>
-    /// <param name="extenderDirectoryMethodName">De naam van de methode die een DirectoryInfo gebruikt.</param>
-    /// <returns>De volledige broncode als string.</returns>
+    /// <param name="applicationDbContextType">The type of the DbContext.</param>
+    /// <param name="extenderName">The name of the generated extender class.</param>
+    /// <param name="extenderZipMethodName">The name of the method that uses a ZipArchive.</param>
+    /// <param name="extenderDirectoryMethodName">The name of the method that uses a DirectoryInfo.</param>
+    /// <returns>The complete generated source code as a string.</returns>
     private static string GenerateDbSetLoaderCode(Type applicationDbContextType, string extenderName, string extenderZipMethodName, string extenderDirectoryMethodName)
     {
         var applicationDbContextName = applicationDbContextType.Name;

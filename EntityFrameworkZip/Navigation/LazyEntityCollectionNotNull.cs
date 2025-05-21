@@ -3,7 +3,8 @@
 namespace EntityFrameworkZip.Navigation;
 
 /// <summary>
-/// Represents a lazy-loading collection of foreign entities related to a primary entity.
+/// Represents a lazy-loading collection of foreign entities related to a primary entity. 
+/// (with not nullable foreign keys)
 /// </summary>
 /// <typeparam name="TForeign">The type of the foreign entity.</typeparam>
 /// <typeparam name="TPrimary">The type of the primary entity.</typeparam>

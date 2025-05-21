@@ -36,6 +36,10 @@ public class Person : IEntity
     /// </summary>
     public RankEnum? Rank { get; set; }
 
+    public DateTime CreatedDate { get; set; } = DateTime.Now;
+    public DateTime? LastModifiedDate { get; set; } 
+
+
     /// <summary>
     /// Gets or sets the lazily loaded reference to the person's company.
     /// Not initialized by default, meaning it will be null until assigned.
