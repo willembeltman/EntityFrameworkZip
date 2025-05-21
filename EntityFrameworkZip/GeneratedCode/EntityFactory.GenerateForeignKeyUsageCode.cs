@@ -1,8 +1,6 @@
-﻿using EntityFrameworkZip.Helpers;
+﻿namespace EntityFrameworkZip.GeneratedCode;
 
-namespace EntityFrameworkZip.GeneratedCode;
-
-public partial class EntityFactory<T> : CodeCompiler
+public partial class EntityFactory<T> 
 {
     private static string GenerateForeignKeyUsageCode(Type type, string methodName, DbContext dbContext)
     {
@@ -20,7 +18,7 @@ public partial class EntityFactory<T> : CodeCompiler
         if (applicationDbContextTypeFullName == null)
             throw new Exception("Cannot find dbcontext type");
 
-        if (ReflectionHelper.HasIEntityInterface(type))
+        if (ReflectionHelper.IsIEntity(type))
         {
             var applicationDbContextProps = applicationDbContextType.GetProperties();
 
@@ -60,7 +58,7 @@ public partial class EntityFactory<T> : CodeCompiler
         ref string codeRemoveIfFound, ref string codeExceptionIfFound, ref int listIndex,
         List<Type>? doneTypes = null, string baseProperty = "", string basePropertyNull = "")
     {
-        if (!ReflectionHelper.HasIEntityInterface(type)) return;
+        if (!ReflectionHelper.IsIEntity(type)) return;
 
         if (doneTypes == null)
         {
@@ -78,15 +76,15 @@ public partial class EntityFactory<T> : CodeCompiler
             var propertyName = entityProp.Name;
             if (!ReflectionHelper.HasPublicGetter(entityProp)) continue;
             if (!ReflectionHelper.HasPublicSetter(entityProp)) continue;
-            if (ReflectionHelper.HasExtendedForeignProperties(entityProp.PropertyType) &&
-                ReflectionHelper.HasIEntityInterface(entityProp.PropertyType))
+            if (ReflectionHelper.HasNavigationProperties(entityProp.PropertyType) &&
+                ReflectionHelper.IsIEntity(entityProp.PropertyType))
             {
                 GenerateForeignKeyUsageCode_GenerateForEntity(type, entityProp.PropertyType, dbSetName, applicationDbContextTypeFullName,
                     ref codeRemoveIfFound, ref codeExceptionIfFound, ref listIndex,
                     doneTypes, baseProperty + $".{entityProp.Name}", basePropertyNull + $".{entityProp.Name}?");
                 continue;
             }
-            if (!ReflectionHelper.IsExtendedForeignEntityProperty(entityProp)) continue;
+            if (!ReflectionHelper.IsNavigationEntityProperty(entityProp)) continue;
 
             var foreignType = ReflectionHelper.GetILazyType(entityProp);
             var foreignKeyName = $"{propertyName}Id";

@@ -1,5 +1,5 @@
 ﻿using System.IO.Compression;
-using EntityFrameworkZip.Collections;
+using EntityFrameworkZip.GeneratedCode;
 using EntityFrameworkZip.Interfaces;
 
 namespace EntityFrameworkZip;
@@ -26,7 +26,7 @@ public class DbContext
         using var ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
         using var ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
 
-        var extender = DbContextHelperCollection.GetOrCreate(this);
+        var extender = DbContextFactoryCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, ZipArchive);
     }
 
@@ -40,7 +40,7 @@ public class DbContext
         FullName = fullName;
         DbSets = [];
 
-        var extender = DbContextHelperCollection.GetOrCreate(this);
+        var extender = DbContextFactoryCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, ZipArchive);
     }
 
@@ -54,7 +54,7 @@ public class DbContext
         Directory = directory;
         DbSets = [];
 
-        var extender = DbContextHelperCollection.GetOrCreate(this);
+        var extender = DbContextFactoryCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, directory);
     }
 

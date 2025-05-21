@@ -484,6 +484,7 @@ Conclusion: not going to do it.
 - Added support for nullable foreign keys (`long?`), which now default to `null` instead of `0`.
 - Updated test program to test nullable fields.
 - Combined all generated code so startup is faster.
+- Massive code cleanup
 
 ### v1.0.9
 - Added full XML documentation for all public classes and members.

@@ -1,6 +1,5 @@
 ﻿using System.IO.Compression;
 using EntityFrameworkZip.GeneratedCode;
-using EntityFrameworkZip.Collections;
 
 namespace EntityFrameworkZip;
 

@@ -1,6 +1,4 @@
-﻿using EntityFrameworkZip.GeneratedCode;
-
-namespace EntityFrameworkZip.Collections;
+﻿namespace EntityFrameworkZip.GeneratedCode;
 
 /// <summary>
 /// Provides a cache and factory for <see cref="EntityFactory{T}"/> instances keyed by entity type and DbContext type.

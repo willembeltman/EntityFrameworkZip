@@ -1,14 +1,5 @@
-﻿using EntityFrameworkZip.Collections;
-using EntityFrameworkZip.ExtendedEntity;
-using EntityFrameworkZip.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EntityFrameworkZip.GeneratedCode;
-public partial class EntityFactory<T> : CodeCompiler
+﻿namespace EntityFrameworkZip.GeneratedCode;
+public partial class EntityFactory<T>
 {
     private readonly Action<BinaryWriter, T, DbContext> WriteDelegate;
     private readonly Func<BinaryReader, DbContext, T> ReadDelegate;
@@ -38,7 +29,7 @@ public partial class EntityFactory<T> : CodeCompiler
                 {GenerateForeignKeyUsageCode(type, findForeignKeyUsageMethodName, dbContext)}
             }}";
 
-        var asm = Compile(Code);
+        var asm = CodeCompiler.Compile(Code);
         var serializerType = asm.GetType(className)!;
 
         var readMethod = serializerType.GetMethod(readMethodName)!;

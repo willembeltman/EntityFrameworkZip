@@ -1,7 +1,8 @@
 ﻿namespace EntityFrameworkZip;
 
 /// <summary>
-/// Represents a simple lazy container that holds a static entity value.
+/// Represents a simple lazy container that holds a static entity value. Can be used for linking 
+/// foreign navigation properties before adding them to the DbSet.
 /// </summary>
 /// <typeparam name="T">The type of the entity.</typeparam>
 public class LazyStatic<T> : ILazy<T?>

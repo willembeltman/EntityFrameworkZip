@@ -1,9 +1,8 @@
 ﻿using EntityFrameworkZip.GeneratedCode;
-using EntityFrameworkZip.Helpers;
 using EntityFrameworkZip;
 using System.IO.Compression;
 
-public class DbContextHelper : CodeCompiler
+public class DbContextFactory
 {
     /// <summary>
     /// Delegate die de logica bevat om een DbContext uit te breiden met DbSet-instanties
@@ -51,10 +50,10 @@ public class DbContextHelper : CodeCompiler
     /// initialiseert met DbSet instanties die gekoppeld zijn aan een ZipArchive of directory.
     /// </summary>
     /// <param name="dbContext">De DbContext waarvan het type wordt gebruikt voor codegeneratie.</param>
-    public DbContextHelper(DbContext dbContext)
+    public DbContextFactory(DbContext dbContext)
     {
         var applicationDbContextType = dbContext.GetType();
-        var extenderName = $"{applicationDbContextType.Name}DbContextHelper";
+        var extenderName = $"{applicationDbContextType.Name}DbContextFactory";
         var extenderMethodNameZip = "ExtendDbContextZip";
         var extenderMethodNameDirectory = "ExtendDbContextDirectory";
 
@@ -62,7 +61,7 @@ public class DbContextHelper : CodeCompiler
         Code = GenerateSerializerCode(applicationDbContextType, extenderName, extenderMethodNameZip, extenderMethodNameDirectory);
 
         // Compileer de gegenereerde code in een assembly
-        var asm = Compile(Code);
+        var asm = CodeCompiler.Compile(Code);
 
         // Haal het type van de extender class uit de assembly
         var serializerType = asm.GetType(extenderName)!;

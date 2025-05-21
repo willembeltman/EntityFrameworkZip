@@ -1,9 +1,6 @@
-﻿using EntityFrameworkZip.Collections;
-using EntityFrameworkZip.Helpers;
+﻿namespace EntityFrameworkZip.GeneratedCode;
 
-namespace EntityFrameworkZip.GeneratedCode;
-
-public partial class EntityFactory<T> : CodeCompiler
+public partial class EntityFactory<T> 
 {
     private static string GenerateSerializerCode(Type type, string readMethodName, string writeMethodName, DbContext dbContext)
     {
@@ -30,14 +27,14 @@ public partial class EntityFactory<T> : CodeCompiler
             if (!ReflectionHelper.HasPublicSetter(prop)) continue;
             if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
 
-            if (ReflectionHelper.IsOldExtendedForeignEntityProperty(prop))
+            if (ReflectionHelper.IsOldNavigationEntityProperty(prop))
                 throw new Exception(
                     "As of version 1.0.8, we’ve moved from Lazy<T> to ILazy<T> to fix a subtle bug with foreign keys not updating.\n" +
                     "Sorry for the breaking change — you'll need to update your entity properties.\n" +
                     "Read more at: https://github.com/willembeltman/EntityFrameworkZip"
                 );
 
-            if (ReflectionHelper.IsExtendedForeignProperty(prop)) continue;
+            if (ReflectionHelper.IsNavigationProperty(prop)) continue;
 
             var propertyName = prop.Name;
             var propertyType = ReflectionHelper.GetUnderlyingType(prop.PropertyType);

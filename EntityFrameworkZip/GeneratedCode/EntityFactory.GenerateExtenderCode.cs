@@ -1,10 +1,8 @@
-﻿using EntityFrameworkZip.Collections;
-using EntityFrameworkZip.ExtendedEntity;
-using EntityFrameworkZip.Helpers;
+﻿using EntityFrameworkZip.Navigation;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-public partial class EntityFactory<T> : CodeCompiler
+public partial class EntityFactory<T>
 {
     private static string GenerateExtenderCode(Type type, string methodName, DbContext dbContext)
     {
@@ -13,16 +11,16 @@ public partial class EntityFactory<T> : CodeCompiler
 
         var lazyCode = string.Empty;
 
-        var foreignEntityCollectionNotNullType = typeof(LazyForeignEntityCollectionNotNull<,>);
+        var foreignEntityCollectionNotNullType = typeof(LazyEntityCollectionNotNull<,>);
         var foreignEntityCollectionNotNullFullName = foreignEntityCollectionNotNullType.FullName!.Split('`').First();
 
-        var foreignEntityCollectionNullType = typeof(LazyForeignEntityCollectionNull<,>);
+        var foreignEntityCollectionNullType = typeof(LazyEntityCollectionNull<,>);
         var foreignEntityCollectionNullFullName = foreignEntityCollectionNullType.FullName!.Split('`').First();
 
-        var foreignEntityLazyNotNullType = typeof(LazyForeignEntityNotNull<,>);
+        var foreignEntityLazyNotNullType = typeof(LazyEntityNotNull<,>);
         var foreignEntityLazyNotNullFullName = foreignEntityLazyNotNullType.FullName!.Split('`').First();
 
-        var foreignEntityLazyNullType = typeof(LazyForeignEntityNull<,>);
+        var foreignEntityLazyNullType = typeof(LazyEntityNull<,>);
         var foreignEntityLazyNullFullName = foreignEntityLazyNullType.FullName!.Split('`').First();
 
         var entityFactoryType = typeof(EntityFactory<>);
@@ -44,7 +42,7 @@ public partial class EntityFactory<T> : CodeCompiler
             var propertyName = prop.Name;
             if (!ReflectionHelper.HasPublicGetter(prop)) continue;
             if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-            if (ReflectionHelper.HasExtendedForeignProperties(prop.PropertyType))
+            if (ReflectionHelper.HasNavigationProperties(prop.PropertyType))
             {
                 lazyCode += $@"
                     if (item.{propertyName} != null)
@@ -54,13 +52,13 @@ public partial class EntityFactory<T> : CodeCompiler
                     }}";
                 continue;
             }
-            if (!ReflectionHelper.IsExtendedForeignProperty(prop)) continue;
+            if (!ReflectionHelper.IsNavigationProperty(prop)) continue;
 
-            if (ReflectionHelper.IsExtendedForeignListProperty(prop))
+            if (ReflectionHelper.IsNavigationListProperty(prop))
             {
                 GenerateExtenderCode_GenerateForeignListProperty(type, className, fullClassName, ref lazyCode, foreignEntityCollectionNotNullFullName, foreignEntityCollectionNullFullName, applicationDbContextType, prop, propertyName);
             }
-            else if (ReflectionHelper.IsExtendedForeignEntityProperty(prop))
+            else if (ReflectionHelper.IsNavigationEntityProperty(prop))
             {
                 GenerateExtenderCode_GenerateForeignEntityProperty(type, fullClassName, ref lazyCode, foreignEntityLazyNotNullFullName, foreignEntityLazyNullFullName, applicationDbContextType, prop, propertyName);
             }
@@ -166,7 +164,7 @@ public partial class EntityFactory<T> : CodeCompiler
             .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType)
             ?? throw new Exception($"ZipDatabase Exception: DbSet<{foreignType.Name}> not found on {applicationDbContextType.Name}.");
 
-        if (!ReflectionHelper.HasIEntityInterface(type))
+        if (!ReflectionHelper.IsIEntity(type))
             throw new Exception(
                 $"ZipDatabase Exception: Type '{type.FullName}' does not implement IEntity interface, though is used to filter in the " +
                 $"{foreignType.Name} entities with '{foreignKeyName}'. Type {type.Name} needs a primary key " +

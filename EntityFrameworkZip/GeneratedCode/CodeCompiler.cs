@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-public class CodeCompiler
+public static class CodeCompiler
 {
     public static Assembly Compile(string code)
     {

@@ -1,4 +1,4 @@
-﻿namespace EntityFrameworkZip.Collections;
+﻿namespace EntityFrameworkZip.GeneratedCode;
 
 public readonly struct EntityFactoryKey
 {
