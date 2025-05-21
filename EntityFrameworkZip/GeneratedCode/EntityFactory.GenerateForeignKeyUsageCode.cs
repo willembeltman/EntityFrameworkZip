@@ -1,38 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
-using EntityFrameworkZip.Collections;
-using EntityFrameworkZip.Helpers;
-using EntityFrameworkZip.ExtendedEntity;
+﻿using EntityFrameworkZip.Helpers;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
-public class ForeignKeyUsageFinder<T> : CodeCompiler
+public partial class EntityFactory<T> : CodeCompiler
 {
-    private readonly Func<T, DbContext, bool, bool> FindForeignKeyUsageDelegate;
-    public readonly string Code;
-
-    public bool FindForeignKeyUsage(T entity, DbContext dbContext, bool removeIfFound = false)
-    {
-        if (entity == null) throw new Exception("Entity cannot be null while extending");
-        return FindForeignKeyUsageDelegate(entity, dbContext, removeIfFound);
-    }
-
-    internal ForeignKeyUsageFinder(DbContext dbContext)
-    {
-        var type = typeof(T);
-        var className = $"{type.Name}ForeignKeyUsageFinder";
-        var methodName = "FindForeignKeyUsage";
-
-        Code = GenerateFinderCode(type, className, methodName, dbContext);
-
-        var asm = Compile(Code);
-        var serializerType = asm.GetType(className)!;
-        var createProxyMethod = serializerType.GetMethod(methodName)!;
-
-        FindForeignKeyUsageDelegate = (Func<T, DbContext, bool, bool>)Delegate.CreateDelegate(
-            typeof(Func<T, DbContext, bool, bool>), createProxyMethod)!;
-    }
-
-    private static string GenerateFinderCode(Type type, string proxyName, string methodName, DbContext dbContext)
+    private static string GenerateForeignKeyUsageCode(Type type, string methodName, DbContext dbContext)
     {
         var className = type.Name;
         var fullClassName = type.FullName;
@@ -48,30 +20,26 @@ public class ForeignKeyUsageFinder<T> : CodeCompiler
         if (applicationDbContextTypeFullName == null)
             throw new Exception("Cannot find dbcontext type");
 
-        var applicationDbContextProps = applicationDbContextType.GetProperties();
-
-        foreach (var applicationDbContextProp in applicationDbContextProps)
+        if (ReflectionHelper.HasIEntityInterface(type))
         {
-            var applicationDbContextPropType = applicationDbContextProp.PropertyType;
-            if (!ReflectionHelper.IsDbSet(applicationDbContextProp)) continue;
+            var applicationDbContextProps = applicationDbContextType.GetProperties();
 
-            var entityType = ReflectionHelper.GetDbSetType(applicationDbContextPropType);
-            if (entityType == null) continue;
-            if (entityType == type) continue;
+            foreach (var applicationDbContextProp in applicationDbContextProps)
+            {
+                var applicationDbContextPropType = applicationDbContextProp.PropertyType;
+                if (!ReflectionHelper.IsDbSet(applicationDbContextProp)) continue;
 
-            var dbSetName = applicationDbContextProp.Name;
-            var listIndex = 0;
-            CheckEntity(type, entityType, dbSetName, applicationDbContextTypeFullName,
-                ref codeRemoveIfFound, ref codeExceptionIfFound, ref listIndex);
+                var entityType = ReflectionHelper.GetDbSetType(applicationDbContextPropType);
+                if (entityType == null) continue;
+                if (entityType == type) continue;
+
+                var dbSetName = applicationDbContextProp.Name;
+                var listIndex = 0;
+                GenerateForeignKeyUsageCode_GenerateForEntity(type, entityType, dbSetName, applicationDbContextTypeFullName,
+                    ref codeRemoveIfFound, ref codeExceptionIfFound, ref listIndex);
+            }
         }
-
         return $@"
-            using System;
-            using System.Linq;
-            using System.Collections.Generic;
-
-            public static class {proxyName}
-            {{
                 public static bool {methodName}({fullClassName} item, {dbContextTypeFullName} objDb, bool removeIfFound)
                 {{
                     var db = objDb as {applicationDbContextTypeFullName};
@@ -85,12 +53,15 @@ public class ForeignKeyUsageFinder<T> : CodeCompiler
                     }}
                     return res;
                 }}
-            }}";
+                ";
     }
-    private static void CheckEntity(Type type, Type entityType, string dbSetName, string applicationDbContextTypeFullName,
+    private static void GenerateForeignKeyUsageCode_GenerateForEntity(
+        Type type, Type entityType, string dbSetName, string applicationDbContextTypeFullName,
         ref string codeRemoveIfFound, ref string codeExceptionIfFound, ref int listIndex,
         List<Type>? doneTypes = null, string baseProperty = "", string basePropertyNull = "")
     {
+        if (!ReflectionHelper.HasIEntityInterface(type)) return;
+
         if (doneTypes == null)
         {
             doneTypes = new List<Type>();
@@ -107,9 +78,10 @@ public class ForeignKeyUsageFinder<T> : CodeCompiler
             var propertyName = entityProp.Name;
             if (!ReflectionHelper.HasPublicGetter(entityProp)) continue;
             if (!ReflectionHelper.HasPublicSetter(entityProp)) continue;
-            if (ReflectionHelper.HasExtendedForeignProperties(entityProp.PropertyType))
+            if (ReflectionHelper.HasExtendedForeignProperties(entityProp.PropertyType) &&
+                ReflectionHelper.HasIEntityInterface(entityProp.PropertyType))
             {
-                CheckEntity(type, entityProp.PropertyType, dbSetName, applicationDbContextTypeFullName,
+                GenerateForeignKeyUsageCode_GenerateForEntity(type, entityProp.PropertyType, dbSetName, applicationDbContextTypeFullName,
                     ref codeRemoveIfFound, ref codeExceptionIfFound, ref listIndex,
                     doneTypes, baseProperty + $".{entityProp.Name}", basePropertyNull + $".{entityProp.Name}?");
                 continue;
@@ -133,8 +105,8 @@ public class ForeignKeyUsageFinder<T> : CodeCompiler
 
             listIndex++;
             codeRemoveIfFound += @$"
-                        var list{listIndex} = db.{dbSetName}.Where(a => a{basePropertyNull}.{foreignKeyName} == item.Id);
-                        foreach (var item{listIndex} in list{listIndex})
+                        var list{dbSetName}{listIndex} = db.{dbSetName}.Where(a => a{basePropertyNull}.{foreignKeyName} == item.Id);
+                        foreach (var item{listIndex} in list{dbSetName}{listIndex})
                         {{
                             res = true;
                             item{listIndex}{baseProperty}.{foreignKeyName} = {defaultvalue};
@@ -142,7 +114,6 @@ public class ForeignKeyUsageFinder<T> : CodeCompiler
             codeExceptionIfFound += @$"
                         if (db.{dbSetName}.Any(a => a{basePropertyNull}.{foreignKeyName} == item.Id)) 
                             throw new Exception(""Cannot delete {type.FullName}, id #"" + item.Id + "", from {type.Name}. {applicationDbContextTypeFullName}.{dbSetName}{baseProperty}.{foreignKeyName} has a reference towards it. Please remove the reference."");";
-
         }
     }
 }

@@ -3,7 +3,7 @@ using EntityFrameworkZip.Helpers;
 using EntityFrameworkZip;
 using System.IO.Compression;
 
-public class DbContextExtender : CodeCompiler
+public class DbContextHelper : CodeCompiler
 {
     /// <summary>
     /// Delegate die de logica bevat om een DbContext uit te breiden met DbSet-instanties
@@ -51,10 +51,10 @@ public class DbContextExtender : CodeCompiler
     /// initialiseert met DbSet instanties die gekoppeld zijn aan een ZipArchive of directory.
     /// </summary>
     /// <param name="dbContext">De DbContext waarvan het type wordt gebruikt voor codegeneratie.</param>
-    public DbContextExtender(DbContext dbContext)
+    public DbContextHelper(DbContext dbContext)
     {
         var applicationDbContextType = dbContext.GetType();
-        var extenderName = $"{applicationDbContextType.Name}DbContextExtender";
+        var extenderName = $"{applicationDbContextType.Name}DbContextHelper";
         var extenderMethodNameZip = "ExtendDbContextZip";
         var extenderMethodNameDirectory = "ExtendDbContextDirectory";
 

@@ -26,7 +26,7 @@ public class DbContext
         using var ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
         using var ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
 
-        var extender = DbContextExtenderCollection.GetOrCreate(this);
+        var extender = DbContextHelperCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, ZipArchive);
     }
 
@@ -40,7 +40,7 @@ public class DbContext
         FullName = fullName;
         DbSets = [];
 
-        var extender = DbContextExtenderCollection.GetOrCreate(this);
+        var extender = DbContextHelperCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, ZipArchive);
     }
 
@@ -54,7 +54,7 @@ public class DbContext
         Directory = directory;
         DbSets = [];
 
-        var extender = DbContextExtenderCollection.GetOrCreate(this);
+        var extender = DbContextHelperCollection.GetOrCreate(this);
         extender.ExtendDbContext(this, directory);
     }
 

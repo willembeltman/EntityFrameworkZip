@@ -23,14 +23,9 @@ public partial class DbSet<T>
     public Dictionary<long, T> Cache { get; }
 
     /// <summary>
-    /// Handles serialization and deserialization of this entity type.
+    /// All generated helper functions for the entity of this DbSet.
     /// </summary>
-    public EntitySerializer<T> EntitySerializer { get; }
-
-    /// <summary>
-    /// Responsible for extending the entity with navigation properties.
-    /// </summary>
-    public EntityExtender<T> EntityExtender { get; }
+    public EntityFactory<T> EntityFactory { get; }
 
     /// <summary>
     /// The parent <see cref="DbContext"/> this set belongs to.
@@ -54,8 +49,8 @@ public partial class DbSet<T>
         TypeName = typeof(T).Name;
         Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         Cache = new Dictionary<long, T>();
-        EntitySerializer = EntitySerializerCollection.GetOrCreate<T>(dbContext);
-        EntityExtender = EntityExtenderCollection.GetOrCreate<T>(dbContext);
+        EntityFactory = EntityFactoryCollection.GetOrCreate<T>(dbContext);
+        EntityFactory = EntityFactoryCollection.GetOrCreate<T>(dbContext);
     }
 
     /// <summary>

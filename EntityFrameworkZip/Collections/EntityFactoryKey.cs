@@ -1,8 +1,8 @@
 ﻿namespace EntityFrameworkZip.Collections;
 
-public readonly struct ForeignKeyUsageFinderKey
+public readonly struct EntityFactoryKey
 {
-    public ForeignKeyUsageFinderKey(Type type, Type applicationDbContextType) : this()
+    public EntityFactoryKey(Type type, Type applicationDbContextType) : this()
     {
         Type = type;
         ApplicationDbContextType = applicationDbContextType;

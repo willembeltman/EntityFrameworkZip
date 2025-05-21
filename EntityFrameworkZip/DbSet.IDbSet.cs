@@ -134,7 +134,7 @@ public partial class DbSet<T> : IDbSet
 
         while (dataReader.BaseStream.Position < dataReader.BaseStream.Length)
         {
-            var item = EntitySerializer.Read(dataReader!, DbContext);
+            var item = EntityFactory.Read(dataReader!, DbContext);
             Cache[item.Id] = item;
         }
     }
@@ -150,7 +150,7 @@ public partial class DbSet<T> : IDbSet
         idWriter.Write(LastId);
         foreach (var item in Cache.Values)
         {
-            EntitySerializer.Write(dataWriter, item, DbContext);
+            EntityFactory.Write(dataWriter, item, DbContext);
         }
     }
 }

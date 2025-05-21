@@ -43,7 +43,7 @@ public partial class DbSet<T> : ICollection<T>
         {
             item.Id = ++LastId;
             Cache[item.Id] = item;
-            EntityExtender.ExtendEntity(item, DbContext);
+            EntityFactory.Extend(item, DbContext);
         }
         finally
         {
@@ -71,7 +71,7 @@ public partial class DbSet<T> : ICollection<T>
         try
         {
             Cache[item.Id] = item;
-            EntityExtender.ExtendEntity(item, DbContext);
+            EntityFactory.Extend(item, DbContext);
 
             // Track the highest ID so new entities get a unique one.
             if (LastId < item.Id) LastId = item.Id;
@@ -130,7 +130,7 @@ public partial class DbSet<T> : ICollection<T>
     public bool Remove(T item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
-        var foreignKeyUsageFinder = ForeignKeyUsageFinderCollection.GetOrCreate<T>(DbContext);
+        var foreignKeyUsageFinder = EntityFactoryCollection.GetOrCreate<T>(DbContext);
         if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext)) throw new Exception("Foreign key found");
 
         Lock.EnterWriteLock();
@@ -155,7 +155,7 @@ public partial class DbSet<T> : ICollection<T>
     public bool Remove(T item, bool removeDependencies)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
-        var foreignKeyUsageFinder = ForeignKeyUsageFinderCollection.GetOrCreate<T>(DbContext);
+        var foreignKeyUsageFinder = EntityFactoryCollection.GetOrCreate<T>(DbContext);
         if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext, removeDependencies) && !removeDependencies) throw new Exception("Foreign key found");
 
         Lock.EnterWriteLock();
@@ -253,7 +253,7 @@ public partial class DbSet<T> : ICollection<T>
         {
             foreach (var item in Cache.Values)
             {
-                //EntityExtender.ExtendEntity(item, DbContext);
+                EntityFactory.Extend(item, DbContext);
                 if (arrayIndex >= array.Length) throw new ArgumentException("Target array too small");
                 array[arrayIndex++] = item;
             }
@@ -276,7 +276,7 @@ public partial class DbSet<T> : ICollection<T>
         {
             foreach (var item in Cache.Values)
             {
-                EntityExtender.ExtendEntity(item, DbContext);
+                EntityFactory.Extend(item, DbContext);
                 yield return item;
             }
         }

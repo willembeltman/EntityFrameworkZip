@@ -15,7 +15,7 @@ public class CodeCompiler
             .Cast<MetadataReference>();
 
         var compilation = CSharpCompilation.Create(
-            "GeneratedEntityExtenders",
+            "GeneratedCodeLibrary",
             [syntaxTree],
             refs,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
