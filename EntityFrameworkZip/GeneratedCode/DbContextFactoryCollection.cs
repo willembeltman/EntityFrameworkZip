@@ -5,7 +5,7 @@
 /// </summary>
 public static class DbContextFactoryCollection
 {
-    private static readonly Dictionary<Type, object> DbContextFactorys = [];
+    public static readonly Dictionary<Type, object> DbContextFactorys = [];
 
     /// <summary>
     /// Gets an existing or creates a new <see cref="DbContextFactory"/> for the specified <see cref="DbContext"/> instance.

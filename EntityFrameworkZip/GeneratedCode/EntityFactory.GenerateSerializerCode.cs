@@ -1,6 +1,6 @@
 ﻿namespace EntityFrameworkZip.GeneratedCode;
 
-public partial class EntityFactory<T> 
+public partial class EntityFactory<T>
 {
     private static string GenerateSerializerCode(Type type, string readMethodName, string writeMethodName, DbContext dbContext)
     {
@@ -124,8 +124,9 @@ public partial class EntityFactory<T>
                 $"\r\n" +
                 $"- Primative types.\r\n" +
                 $"- DateTime's.\r\n" +
-                $"- ExtendedProperties with 'virtual Lazy<>' (with optional ForeignKeyAttribute).\r\n" +
-                $"- ExtendedLists with 'virtual ICollection<>' or 'virtual IEnumerable<>' (with optional ForeignKeyAttribute).\r\n" +
+                $"- Enum's.\r\n" +
+                $"- Navigation properties with 'virtual ILazy<>' (with optional ForeignKeyAttribute).\r\n" +
+                $"- Navigation collections with 'virtual ICollection<>' or 'virtual IEnumerable<>' (with optional ForeignKeyAttribute).\r\n" +
                 $"- And non-generic struct's and classes(which in turn support the same kind of properties). \r\n" +
                 $"\r\n" +
                 $"You can ofcourse use generic types like Lists or Arrays but only marked as [NotMapped] " +
@@ -141,9 +142,10 @@ public partial class EntityFactory<T>
                 $"\r\n" +
                 $"- Primative types.\r\n" +
                 $"- DateTime's.\r\n" +
-                $"- ExtendedProperties with 'virtual Lazy<>' (with optional ForeignKeyAttribute).\r\n" +
-                $"- ExtendedLists with 'virtual ICollection<>' or 'virtual IEnumerable<>' (with optional ForeignKeyAttribute).\r\n" +
-                $"- And non-generic struct's and classes(which in turn support the same). \r\n" +
+                $"- Enum's.\r\n" +
+                $"- Navigation properties with 'virtual ILazy<>' (with optional ForeignKeyAttribute).\r\n" +
+                $"- Navigation collections with 'virtual ICollection<>' or 'virtual IEnumerable<>' (with optional ForeignKeyAttribute).\r\n" +
+                $"- And non-generic struct's and classes(which in turn support the same kind of properties). \r\n" +
                 $"\r\n" +
                 $"You can ofcourse use generic types like Lists or Arrays but only marked as [NotMapped] " +
                 $"to signal those properties are not serialized when the dbcontext is saved. Please mark " +

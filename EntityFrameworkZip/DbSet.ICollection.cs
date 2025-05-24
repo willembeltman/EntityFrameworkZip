@@ -35,11 +35,11 @@ public partial class DbSet<T> : ICollection<T>
     public void Add(T item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
-        if (Contains(item)) throw new ArgumentException("Item already exists in the collection");
 
         Lock.EnterWriteLock();
         try
         {
+            if (Contains(item)) throw new ArgumentException("Item already exists in the collection");
             item.Id = ++LastId;
             Cache[item.Id] = item;
             EntityFactory.SetNavigationProperties(item, DbContext);
@@ -156,7 +156,7 @@ public partial class DbSet<T> : ICollection<T>
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
         var foreignKeyUsageFinder = EntityFactoryCollection.GetOrCreate<T>(DbContext);
-        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext, removeDependencies) && !removeDependencies) 
+        if (foreignKeyUsageFinder.FindForeignKeyUsage(item, DbContext, removeDependencies) && !removeDependencies)
             throw new Exception("Foreign key found towards the item to remove");
 
         Lock.EnterWriteLock();

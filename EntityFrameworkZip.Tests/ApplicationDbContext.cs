@@ -37,7 +37,7 @@ public class Person : IEntity
     public RankEnum? Rank { get; set; }
 
     public DateTime CreatedDate { get; set; } = DateTime.Now;
-    public DateTime? LastModifiedDate { get; set; } 
+    public DateTime? LastModifiedDate { get; set; }
 
 
     /// <summary>

@@ -1,6 +1,6 @@
-﻿using System.IO.Compression;
-using EntityFrameworkZip.GeneratedCode;
+﻿using EntityFrameworkZip.GeneratedCode;
 using EntityFrameworkZip.Interfaces;
+using System.IO.Compression;
 
 namespace EntityFrameworkZip;
 

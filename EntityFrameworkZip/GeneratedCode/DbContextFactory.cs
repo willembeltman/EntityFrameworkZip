@@ -1,5 +1,5 @@
-﻿using EntityFrameworkZip.GeneratedCode;
-using EntityFrameworkZip;
+﻿using EntityFrameworkZip;
+using EntityFrameworkZip.GeneratedCode;
 using System.IO.Compression;
 
 public class DbContextFactory

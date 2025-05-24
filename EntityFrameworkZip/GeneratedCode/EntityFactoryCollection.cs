@@ -5,8 +5,8 @@
 /// </summary>
 public static class EntityFactoryCollection
 {
-    private static readonly Dictionary<EntityFactoryKey, object> EntityFactorys = [];
-    
+    public static readonly Dictionary<EntityFactoryKey, object> EntityFactorys = [];
+
     /// <summary>
     /// Gets an existing or creates a new <see cref="EntityFactory{T}"/> for the specified entity type and <see cref="DbContext"/>.
     /// </summary>

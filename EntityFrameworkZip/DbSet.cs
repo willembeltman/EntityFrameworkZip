@@ -1,5 +1,5 @@
-﻿using System.IO.Compression;
-using EntityFrameworkZip.GeneratedCode;
+﻿using EntityFrameworkZip.GeneratedCode;
+using System.IO.Compression;
 
 namespace EntityFrameworkZip;
 
@@ -70,5 +70,5 @@ public partial class DbSet<T>
     {
         LoadCache(directory);
     }
-
+    
 }

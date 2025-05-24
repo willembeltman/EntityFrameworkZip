@@ -24,7 +24,7 @@ public readonly struct EntityFactoryKey : IEquatable<EntityFactoryKey>
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Equals(EntityFactoryKey other) 
+    public bool Equals(EntityFactoryKey other)
         => EntityType == other.EntityType &&
            ApplicationDbContextType == other.ApplicationDbContextType;
 }

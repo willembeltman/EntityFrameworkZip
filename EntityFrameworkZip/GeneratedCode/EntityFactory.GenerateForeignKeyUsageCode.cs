@@ -1,6 +1,6 @@
 ﻿namespace EntityFrameworkZip.GeneratedCode;
 
-public partial class EntityFactory<T> 
+public partial class EntityFactory<T>
 {
     private static string GenerateForeignKeyUsageCode(Type type, string methodName, DbContext dbContext)
     {

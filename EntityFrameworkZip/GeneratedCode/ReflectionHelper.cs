@@ -137,14 +137,14 @@ namespace EntityFrameworkZip.GeneratedCode
                 if (!HasPublicSetter(prop)) continue;
 
                 if (IsNavigationEntityProperty(prop)) return true;
-                if (IsNavigationListProperty(prop)) return true;
+                if (IsNavigationCollectionProperty(prop)) return true;
             }
 
             return false;
         }
         public static bool IsNavigationProperty(PropertyInfo prop)
         {
-            return IsNavigationListProperty(prop) || IsNavigationEntityProperty(prop);
+            return IsNavigationCollectionProperty(prop) || IsNavigationEntityProperty(prop);
         }
         public static bool IsNavigationEntityProperty(PropertyInfo prop)
         {
@@ -158,7 +158,7 @@ namespace EntityFrameworkZip.GeneratedCode
                 IsVirtual(prop) &&
                 IsLazy(prop);
         }
-        public static bool IsNavigationListProperty(PropertyInfo prop)
+        public static bool IsNavigationCollectionProperty(PropertyInfo prop)
         {
             return
                 IsVirtual(prop) &&
@@ -180,7 +180,7 @@ namespace EntityFrameworkZip.GeneratedCode
 
                 if (HasNotMappedAttribute(prop)) continue;
                 if (IsNavigationEntityProperty(prop)) continue;
-                if (IsNavigationListProperty(prop)) continue;
+                if (IsNavigationCollectionProperty(prop)) continue;
 
                 if (IsPrimitiveTypeOrEnum(propType)) continue;
 

@@ -54,7 +54,7 @@ public partial class EntityFactory<T>
             }
             if (!ReflectionHelper.IsNavigationProperty(prop)) continue;
 
-            if (ReflectionHelper.IsNavigationListProperty(prop))
+            if (ReflectionHelper.IsNavigationCollectionProperty(prop))
             {
                 GenerateNavigationCode_GenerateForeignListProperty(type, className, fullClassName, ref lazyCode, foreignEntityCollectionNotNullFullName, foreignEntityCollectionNullFullName, applicationDbContextType, prop, propertyName);
             }
@@ -100,7 +100,7 @@ public partial class EntityFactory<T>
         {
             lazyCode += @$"
                     if (item.{propertyName} != null && 
-                        item.{propertyName}.GetType() != typeof({foreignEntityLazyNullFullName}<{foreignType.FullName}, {fullClassName}>) &&
+                        item.{propertyName} is not {foreignEntityLazyNullFullName}<{foreignType.FullName}, {fullClassName}> &&
                         item.{propertyName}.Value != null)
                     {{
                         var subitem = item.{propertyName}.Value;
@@ -110,7 +110,7 @@ public partial class EntityFactory<T>
                     }}
 
                     if (item.{propertyName} == null ||
-                        item.{propertyName}.GetType() != typeof({foreignEntityLazyNullFullName}<{foreignType.FullName}, {fullClassName}>))
+                        item.{propertyName} is not {foreignEntityLazyNullFullName}<{foreignType.FullName}, {fullClassName}>)
                     {{
                         item.{propertyName} = new {foreignEntityLazyNullFullName}<{foreignType.FullName}, {fullClassName}>(
                             db.{lazyPropertyOnApplicationDbContextName},
@@ -123,17 +123,17 @@ public partial class EntityFactory<T>
         {
             lazyCode += @$"
                     if (item.{propertyName} != null && 
-                        item.{propertyName}.GetType() != typeof({foreignEntityLazyNotNullFullName}<{foreignType.FullName}, {fullClassName}>) &&
+                        item.{propertyName} is not {foreignEntityLazyNotNullFullName}<{foreignType.FullName}, {fullClassName}> &&
                         item.{propertyName}.Value != null)
                     {{
                         var subitem = item.{propertyName}.Value;
-                        db.{lazyPropertyOnApplicationDbContextName}.Attach(subitem);
                         if (item.{foreignKeyName} != subitem.Id)
                             item.{foreignKeyName} = subitem.Id;
+                        db.{lazyPropertyOnApplicationDbContextName}.Attach(subitem);
                     }}
 
                     if (item.{propertyName} == null ||
-                        item.{propertyName}.GetType() != typeof({foreignEntityLazyNotNullFullName}<{foreignType.FullName}, {fullClassName}>))
+                        item.{propertyName} is not {foreignEntityLazyNotNullFullName}<{foreignType.FullName}, {fullClassName}>)
                     {{
                         item.{propertyName} = new {foreignEntityLazyNotNullFullName}<{foreignType.FullName}, {fullClassName}>(
                             db.{lazyPropertyOnApplicationDbContextName},
@@ -178,7 +178,7 @@ public partial class EntityFactory<T>
         {
             lazyCode += $@"
                     if (item.{propertyName} != null &&
-                        item.{propertyName}.GetType() != typeof({foreignEntityCollectionNullFullName}<{foreignType.FullName}, {fullClassName}>))
+                        item.{propertyName} is not {foreignEntityCollectionNullFullName}<{foreignType.FullName}, {fullClassName}>)
                     {{
                         foreach(var subitem in item.{propertyName})
                         {{
@@ -188,7 +188,7 @@ public partial class EntityFactory<T>
                         }}
                     }}
                     if (item.{propertyName} == null ||
-                        item.{propertyName}.GetType() != typeof({foreignEntityCollectionNullFullName}<{foreignType.FullName}, {fullClassName}>))
+                        item.{propertyName} is not {foreignEntityCollectionNullFullName}<{foreignType.FullName}, {fullClassName}>)
                     {{
                         item.{propertyName} = new {foreignEntityCollectionNullFullName}<{foreignType.FullName}, {fullClassName}>(
                             db.{foreignPropertyOnApplicationDbContextName},
@@ -201,7 +201,7 @@ public partial class EntityFactory<T>
         {
             lazyCode += $@"
                     if (item.{propertyName} != null &&
-                        item.{propertyName}.GetType() != typeof({foreignEntityCollectionNotNullFullName}<{foreignType.FullName}, {fullClassName}>))
+                        item.{propertyName} is not {foreignEntityCollectionNotNullFullName}<{foreignType.FullName}, {fullClassName}>)
                     {{
                         foreach(var subitem in item.{propertyName})
                         {{
@@ -211,7 +211,7 @@ public partial class EntityFactory<T>
                         }}
                     }}
                     if (item.{propertyName} == null ||
-                        item.{propertyName}.GetType() != typeof({foreignEntityCollectionNotNullFullName}<{foreignType.FullName}, {fullClassName}>))
+                        item.{propertyName} is not {foreignEntityCollectionNotNullFullName}<{foreignType.FullName}, {fullClassName}>)
                     {{
                         item.{propertyName} = new {foreignEntityCollectionNotNullFullName}<{foreignType.FullName}, {fullClassName}>(
                             db.{foreignPropertyOnApplicationDbContextName},
