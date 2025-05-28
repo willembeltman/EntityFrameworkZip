@@ -1,4 +1,4 @@
-﻿namespace EntityFrameworkZip.GeneratedCode;
+﻿namespace EntityFrameworkZip.Collections;
 
 /// <summary>
 /// Key class used to lookup cached EntityFactories

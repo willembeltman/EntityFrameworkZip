@@ -1,4 +1,6 @@
-﻿namespace EntityFrameworkZip.GeneratedCode;
+﻿using EntityFrameworkZip.Collections;
+
+namespace EntityFrameworkZip.GeneratedCode;
 
 public partial class EntityFactory<T>
 {
@@ -131,7 +133,9 @@ public partial class EntityFactory<T>
                 $"\r\n" +
                 $"You can ofcourse use generic types like Lists or Arrays but only marked as [NotMapped] " +
                 $"to signal those properties are not serialized when the dbcontext is saved. Please mark " +
-                $"those properties as [NotMapped] if this is intended.");
+                $"those properties as [NotMapped] if this is intended.\r\n" +
+                $"\r\n" +
+                $"Or maybe you forgot `virtual` infront of the navigation properties?");
 
         if (!ReflectionHelper.IsValidChildEntity(propertyType))
             throw new Exception(

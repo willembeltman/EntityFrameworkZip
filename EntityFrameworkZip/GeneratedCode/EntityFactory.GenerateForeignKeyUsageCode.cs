@@ -22,6 +22,7 @@ public partial class EntityFactory<T>
         {
             var applicationDbContextProps = applicationDbContextType.GetProperties();
 
+            var listIndex = 0;
             foreach (var applicationDbContextProp in applicationDbContextProps)
             {
                 var applicationDbContextPropType = applicationDbContextProp.PropertyType;
@@ -32,7 +33,6 @@ public partial class EntityFactory<T>
                 if (entityType == type) continue;
 
                 var dbSetName = applicationDbContextProp.Name;
-                var listIndex = 0;
                 GenerateForeignKeyUsageCode_GenerateForEntity(type, entityType, dbSetName, applicationDbContextTypeFullName,
                     ref codeRemoveIfFound, ref codeExceptionIfFound, ref listIndex);
             }
@@ -86,19 +86,22 @@ public partial class EntityFactory<T>
             }
             if (!ReflectionHelper.IsNavigationEntityProperty(entityProp)) continue;
 
+            //Het is dus een 
+
             var foreignType = ReflectionHelper.GetILazyType(entityProp);
             var foreignKeyName = $"{propertyName}Id";
             if (ReflectionHelper.HasForeignKeyAttribute(entityProp))
             {
                 foreignKeyName = ReflectionHelper.GetForeignKeyAttributeName(entityProp);
             }
+            if (foreignType != type) continue;
 
             var foreignProperty = entityType.GetProperties()
                 .FirstOrDefault(a => a.Name == foreignKeyName)
                 ?? throw new Exception($"ZipDatabase Exception: Foreign key property {foreignKeyName} not found on {type.Name}.");
 
             var defaultvalue = ReflectionHelper.IsNulleble(foreignProperty) ? "null" : "0";
-
+            ///if 
             var entityTypeName = entityType.Name;
 
             listIndex++;

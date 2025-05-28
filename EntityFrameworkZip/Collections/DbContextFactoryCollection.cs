@@ -1,4 +1,4 @@
-﻿namespace EntityFrameworkZip.GeneratedCode;
+﻿namespace EntityFrameworkZip.Collections;
 
 /// <summary>
 /// Provides a cache and factory for <see cref="DbContextFactory"/> instances keyed by DbContext type.

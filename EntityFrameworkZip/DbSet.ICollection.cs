@@ -1,4 +1,4 @@
-﻿using EntityFrameworkZip.GeneratedCode;
+﻿using EntityFrameworkZip.Collections;
 using System.Collections;
 
 namespace EntityFrameworkZip;

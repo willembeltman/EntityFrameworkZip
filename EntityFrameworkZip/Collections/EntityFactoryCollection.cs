@@ -1,4 +1,6 @@
-﻿namespace EntityFrameworkZip.GeneratedCode;
+﻿using EntityFrameworkZip.GeneratedCode;
+
+namespace EntityFrameworkZip.Collections;
 
 /// <summary>
 /// Provides a cache and factory for <see cref="EntityFactory{T}"/> instances keyed by entity type and DbContext type.
@@ -18,15 +20,15 @@ public static class EntityFactoryCollection
         var entityType = typeof(T);
         var applicationDbContextType = dbContext.GetType();
         var search = new EntityFactoryKey(entityType, applicationDbContextType);
-        if (EntityFactorys.TryGetValue(search, out var serializer))
+        if (EntityFactorys.TryGetValue(search, out var entityFactory))
         {
-            return (EntityFactory<T>)serializer;
+            return (EntityFactory<T>)entityFactory;
         }
         else
         {
-            var newSerializer = new EntityFactory<T>(dbContext);
-            EntityFactorys[search] = newSerializer;
-            return newSerializer;
+            var newEntityFactory = new EntityFactory<T>(dbContext);
+            EntityFactorys[search] = newEntityFactory;
+            return newEntityFactory;
         }
     }
 }

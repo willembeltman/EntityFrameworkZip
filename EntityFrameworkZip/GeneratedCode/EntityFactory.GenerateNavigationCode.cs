@@ -1,4 +1,5 @@
-﻿using EntityFrameworkZip.Navigation;
+﻿using EntityFrameworkZip.Collections;
+using EntityFrameworkZip.Navigation;
 
 namespace EntityFrameworkZip.GeneratedCode;
 
