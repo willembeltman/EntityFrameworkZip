@@ -29,10 +29,14 @@ public interface IDbSet
     /// </summary>
     /// <param name="zipArchive">The ZIP archive to write the cache to.</param>
     void WriteCache(ZipArchive zipArchive);
+    Task WriteCacheAsync(ZipArchive zipArchive);
 
     /// <summary>
     /// Writes the cache to a directory.
     /// </summary>
     /// <param name="directory">The directory to write the cache to.</param>
     void WriteCache(DirectoryInfo directory);
+    Task WriteCacheAsync(DirectoryInfo directory);
+
+
 }

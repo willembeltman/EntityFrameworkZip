@@ -94,6 +94,15 @@ public partial class DbSet<T> : IDbSet
     }
 
     /// <summary>
+    /// Writes the entity cache to a given <see cref="ZipArchive"/>, storing .id and .data entries.
+    /// </summary>
+    /// <param name="zipArchive">The ZIP archive to write to.</param>
+    public async Task WriteCacheAsync(ZipArchive zipArchive)
+    {
+        await Task.Run(() => WriteCache(zipArchive));
+    }
+
+    /// <summary>
     /// Writes the entity cache to files in the given directory. Overwrites any existing {TypeName}.id/.data files.
     /// </summary>
     /// <param name="directory">The directory to write the files to.</param>
@@ -118,6 +127,15 @@ public partial class DbSet<T> : IDbSet
         {
             Lock.ExitReadLock();
         }
+    }
+
+    /// <summary>
+    /// Writes the entity cache to files in the given directory. Overwrites any existing {TypeName}.id/.data files.
+    /// </summary>
+    /// <param name="directory">The directory to write the files to.</param>
+    public async Task WriteCacheAsync(DirectoryInfo directory)
+    {
+        await Task.Run(() => WriteCache(directory));
     }
 
     /// <summary>

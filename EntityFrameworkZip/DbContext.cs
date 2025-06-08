@@ -97,4 +97,23 @@ public class DbContext
                 dbSet.WriteCache(Directory);
         }
     }
+
+    public async Task SaveChangesAsync()
+    {
+        if (FullName != null)
+        {
+            if (File.Exists(FullName))
+                File.Delete(FullName);
+
+            using var ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
+            using var ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
+
+            await Task.WhenAll(DbSets.Select(dbSet => dbSet.WriteCacheAsync(ZipArchive)));
+        }
+
+        if (Directory != null)
+        {
+            await Task.WhenAll(DbSets.Select(dbSet => dbSet.WriteCacheAsync(Directory)));
+        }
+    }
 }

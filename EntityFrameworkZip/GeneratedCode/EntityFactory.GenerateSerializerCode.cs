@@ -51,7 +51,7 @@ public partial class EntityFactory<T>
             }
 
             newCode += @$"
-                {propertyName} = {propertyName},";
+                {propertyName} = {propertyName}1,";
         }
 
         return $@"
@@ -94,10 +94,10 @@ public partial class EntityFactory<T>
                         }}";
 
             readCode += @$"
-                        {propertyType.FullName}? {propertyName} = null;
+                        {propertyType.FullName}? {propertyName}1 = null;
                         if (!reader.ReadBoolean())
                         {{
-                            {propertyName} = {readMethod};
+                            {propertyName}1 = {readMethod};
                         }}";
 
         }
@@ -110,7 +110,7 @@ public partial class EntityFactory<T>
                         {writeMethod};";
 
             readCode += @$"
-                        var {propertyName} = {readMethod};";
+                        var {propertyName}1 = {readMethod};";
         }
     }
     private static void GenerateSerializerCode_SerializeObject(
@@ -170,11 +170,11 @@ public partial class EntityFactory<T>
 
             readCode += @$"
 
-                        {propertyType} {propertyName} = null;
+                        {propertyType} {propertyName}1 = null;
                         if (!reader.ReadBoolean())
                         {{
                             var {propertyName}EntityFactory = {entityFactoryCollectionTypeFullName}.{entityFactoryCollectionTypeMethod}<{propertyType.FullName}>(db);
-                            {propertyName} = {propertyName}EntityFactory.Read(reader, db);
+                            {propertyName}1 = {propertyName}EntityFactory.Read(reader, db);
                         }}";
         }
         else
@@ -187,7 +187,7 @@ public partial class EntityFactory<T>
             readCode += @$"
 
                         var {propertyName}EntityFactory = {entityFactoryCollectionTypeFullName}.{entityFactoryCollectionTypeMethod}<{propertyType.FullName}>(db);
-                        var {propertyName} = {propertyName}EntityFactory.Read(reader, db);";
+                        var {propertyName}1 = {propertyName}EntityFactory.Read(reader, db);";
         }
     }
     private static string GenerateSerializerCode_GetBinaryWriteMethodNotNull(Type type, string propertyName)
