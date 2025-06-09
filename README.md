@@ -36,8 +36,6 @@ dotnet add package EntityFrameworkZip
 // For simplyfied models
 #nullable disable
 
-// A simple Person entity implementing IEntity.
-// Includes a reference to a Company via a ILazy<Company> property.
 public class Person : IEntity
 {
     public long Id { get; set; }
@@ -48,8 +46,6 @@ public class Person : IEntity
     public virtual ILazy<Company> Company { get; set; }
 }
 
-// A simple Company entity implementing IEntity.
-// Includes a collection of Employees and a ILazy-loaded Owner reference.
 public class Company : IEntity
 {
     public long Id { get; set; }
@@ -63,7 +59,6 @@ public class Company : IEntity
     public virtual ILazy<Person> Owner { get; set; }
 }
 
-// The database context. Inherits from the Zip-based EF-like memory database.
 public class MyDbContext : DbContext
 {
     public MyDbContext(string fullName) : base(fullName) { }
@@ -475,6 +470,17 @@ Conclusion: not going to do it.
 ---
 
 ## 📝 Changelog
+
+### v1.0.12
+- Added async methods (SaveChangesAsync now is multithreaded)
+- Updated reference for Microsoft.CodeAnalysis.Analyzers to 4.14.0
+
+### v1.0.11
+- Updated type comparison to use `is not` instead of GetType(), 
+- Moved contains inside lock to ensure thread safety, 
+- made generated code visible and updated compile exception to include generated code along the exception, 
+- ran code profiler.
+- Fixed bug with removing and checking the foreign keys. Oops
 
 ### v1.0.10
 - Adjusted ICollection.Remove behavior: now only unsets the foreign key (sets it to 0 or null) instead of removing the referenced entity from the DbSet<TForeign>.
