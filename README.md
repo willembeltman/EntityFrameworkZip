@@ -472,6 +472,7 @@ Conclusion: not going to do it.
 ## 📝 Changelog
 
 ### v1.0.12
+- Made DbSet on DbContext nullable to allow for better initialization and usage patterns.
 - Added async methods (SaveChangesAsync now is multithreaded)
 - Updated reference for Microsoft.CodeAnalysis.Analyzers to 4.14.0
 
