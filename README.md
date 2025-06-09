@@ -480,9 +480,9 @@ Conclusion: not going to do it.
 - Moved contains inside lock to ensure thread safety, 
 - made generated code visible and updated compile exception to include generated code along the exception, 
 - ran code profiler.
-- Fixed bug with removing and checking the foreign keys. Oops
+- Fixed bug with removing and checking the foreign keys. Oops.
 
-### v1.0.10
+### v1.0.10 (Removed due to breaking changes)
 - Adjusted ICollection.Remove behavior: now only unsets the foreign key (sets it to 0 or null) instead of removing the referenced entity from the DbSet<TForeign>.
 - Standardized behavior for assigning related entities to new entities to ensure correct add/update semantics.
 - Added support for nullable properties (surprisingly, this was previously unsupported — oops!).
